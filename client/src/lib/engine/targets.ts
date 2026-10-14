@@ -1,0 +1,116 @@
+// "I want a 3.80. What do I need?"
+//
+// The remaining credits are split into ordinary 3-credit courses (the last one
+// takes whatever is left over). A mix is "k courses at one grade, the rest at
+// a lower one"; for each pair of grades we find the smallest k that makes the
+// CGPA print as the target. If straight 4.00s are not enough, we look for the
+// fewest repeats and retakes that close the gap, biggest gain first.
+import type { Candidate } from './boost';
+import { add, gpaOf, LetterGrade, Sums } from './grades';
+
+export interface Mix {
+  high: LetterGrade;
+  low: LetterGrade;
+  highCourses: number; // courses at the higher grade
+  lowCourses: number; // the rest, at the lower grade
+  cgpa: number;
+}
+
+export interface TargetPlan {
+  courses: number[]; // credits of each remaining course
+  reachable: boolean; // with new courses alone
+  allFour: number | null; // the CGPA with every remaining course at 4.00
+  mixes: Mix[];
+  // when new courses alone cannot do it
+  repeats: { chosen: Candidate[]; cgpa: number | null } | null;
+  best: number | null; // the highest CGPA possible, repeats included
+}
+
+// 18 courses of 3 credits for 54 credits, or 17 of 3 and one of 2 for 53
+export function splitCourses(credits: number): number[] {
+  const out: number[] = [];
+  let left = Math.max(0, Math.round(credits * 2) / 2);
+  while (left >= 3) {
+    out.push(3);
+    left -= 3;
+  }
+  if (left > 0) out.push(left);
+  return out;
+}
+
+const withCourses = (sums: Sums, courses: number[], grades: LetterGrade[]) =>
+  courses.reduce((s, credits, i) => add(s, grades[i], credits), sums);
+
+// every pair worth offering, from the easiest to hold to the hardest
+const PAIRS: [LetterGrade, LetterGrade][] = [
+  ['A-', 'B+'],
+  ['A-', 'B'],
+  ['A', 'B+'],
+  ['A', 'A-'],
+];
+
+export function planTarget(sums: Sums, remaining: number, target: number, pool: Candidate[] = []): TargetPlan {
+  const courses = splitCourses(remaining);
+  const n = courses.length;
+  const reaches = (s: Sums) => (gpaOf(s) ?? 0) >= target - 1e-9;
+  const allFourSums = withCourses(sums, courses, courses.map(() => 'A'));
+  const allFour = n ? gpaOf(allFourSums) : gpaOf(sums);
+  const reachable = n > 0 && reaches(allFourSums);
+
+  const mixes: Mix[] = [];
+  if (reachable) {
+    const seen = new Set<string>();
+    // a single grade for every course first: "all 18 at A-"
+    for (const g of ['B', 'B+', 'A-', 'A'] as LetterGrade[]) {
+      const s = withCourses(sums, courses, courses.map(() => g));
+      if (reaches(s)) {
+        mixes.push({ high: g, low: g, highCourses: n, lowCourses: 0, cgpa: gpaOf(s)! });
+        seen.add(`${g}:${n}`);
+        break;
+      }
+    }
+    for (const [high, low] of PAIRS) {
+      // if the lower grade on its own already gets there, the mix adds nothing
+      if (reaches(withCourses(sums, courses, courses.map(() => low)))) continue;
+      for (let k = 1; k <= n; k++) {
+        // the higher grades go on the full 3-credit courses first
+        const grades = courses.map((_, i) => (i < k ? high : low));
+        const s = withCourses(sums, courses, grades);
+        if (reaches(s)) {
+          if (k < n && !seen.has(`${high}:${k}:${low}`)) {
+            mixes.push({ high, low, highCourses: k, lowCourses: n - k, cgpa: gpaOf(s)! });
+            seen.add(`${high}:${k}:${low}`);
+          }
+          break;
+        }
+      }
+    }
+  }
+
+  let repeats: TargetPlan['repeats'] = null;
+  let best = allFour;
+  if (!reachable && pool.length) {
+    // every remaining course at 4.00, then add the biggest repeats one by one
+    let points = allFourSums.points;
+    const chosen: Candidate[] = [];
+    for (const c of pool) {
+      points += c.gain;
+      chosen.push(c);
+      const cgpa = gpaOf({ points, credits: allFourSums.credits });
+      best = cgpa;
+      if ((cgpa ?? 0) >= target - 1e-9) {
+        repeats = { chosen: [...chosen], cgpa };
+        break;
+      }
+    }
+  }
+
+  return { courses, reachable, allFour, mixes, repeats, best };
+}
+
+// how many of each grade: the counted results, one per course
+export function gradeCounts(grades: string[]) {
+  const counts = new Map<string, number>();
+  for (const g of grades) counts.set(g, (counts.get(g) ?? 0) + 1);
+  return counts;
+}

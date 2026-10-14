@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/compass.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#7A22C9" />
+    <meta name="author" content="Faiaz Abrar Zaman Pronoy and Sinthia Khandoker" />
+    <meta name="description" content="Course reviews, Q&A, a semester planner and a study desk for BRAC University students." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Anek+Bangla:wght@400..700&display=swap"
+    />
+    <title>BRACU Course Compass | Course Reviews and Study Platform</title>
+    <script>
+      // theme and language before first paint, so nothing flashes
+      try {
+        var t = localStorage.getItem('theme');
+        if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark');
+        if (localStorage.getItem('lang') === 'bn') document.documentElement.lang = 'bn';
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript><p style="font-family:sans-serif;padding:2rem;text-align:center">Course Compass needs JavaScript switched on.</p></noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
