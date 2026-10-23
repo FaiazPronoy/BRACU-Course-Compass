@@ -564,7 +564,7 @@ const en = {
     qNew: 'New grade',
     quickNote: 'An estimate: the CGPA you type is already rounded, so this can be off by 0.01. Upload your grade sheet for the exact figure.',
     eyebrow: 'CGPA calculator',
-    title: 'Know your CGPA, and how to raise it',
+    title: 'Plan your way to a higher CGPA',
     lead: 'Upload the grade sheet from Connect or add your courses yourself. Then see the graph, try a what-if, find the repeats or retakes that help most, and plan your target.',
     visitorNote: 'You are not signed in, so your grades stay in this browser only.',
     visitorSignIn: 'Sign in to keep them in your account',
