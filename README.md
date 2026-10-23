@@ -1,5 +1,7 @@
 # BRACU Course Compass
 
+[![Tests](https://github.com/FaiazPronoy/BRACU-Course-Compass/actions/workflows/tests.yml/badge.svg)](https://github.com/FaiazPronoy/BRACU-Course-Compass/actions/workflows/tests.yml)
+
 **A course review and study platform for BRAC University students.**
 Honest reviews from seniors, a Q&A board for every course, a semester planner,
 a CGPA calculator and a study desk, all in one place.
@@ -10,6 +12,12 @@ a CGPA calculator and a study desk, all in one place.
 | **Type** | Group project |
 | **Made by** | Faiaz Abrar Zaman Pronoy and Sinthia Khandoker |
 | **Languages** | English and Bangla, with a dark mode |
+
+| | |
+|---|---|
+| ![Home dashboard](docs/dashboard.jpg) | ![A course page](docs/course.jpg) |
+
+![CGPA calculator](docs/cgpa.jpg)
 
 ---
 
