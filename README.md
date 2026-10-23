@@ -114,6 +114,21 @@ Open <http://localhost:5173>.
 
 ---
 
+## Settings
+
+Copy `server/.env.example` to `server/.env`. The `.env` file is never committed.
+
+| Variable | What it is |
+|---|---|
+| `DATABASE_URL` | MongoDB connection string |
+| `JWT_ACCESS_SECRET` | A long random string that signs the sign-in token |
+| `JWT_ACCESS_EXPIRES_IN` | How long a sign-in lasts (default `7d`) |
+| `PORT` | Port for the API (default `3000`) |
+| `CLIENT_URL` | Where the client runs in development |
+| `SUPER_ADMIN_EMAIL`, `SUPER_ADMIN_PASSWORD` | The admin account created on first start |
+
+---
+
 ## Tests
 
 - `cd server && npm test` runs **168 tests** against the real server and an in-memory database
