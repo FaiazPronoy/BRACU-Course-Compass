@@ -11,6 +11,7 @@ a CGPA calculator and a study desk, all in one place.
 | **Course** | CSE470: Software Engineering, BRAC University |
 | **Type** | Group project |
 | **Made by** | Faiaz Abrar Zaman Pronoy and Sinthia Khandoker |
+| **History** | Built in Fall 2024 for the course, improved since, and published here in October 2026. |
 | **Languages** | English and Bangla, with a dark mode |
 
 | | |
@@ -99,7 +100,7 @@ The demo data has 31 real BRACU courses, 11 students, 36 reviews and 9 Q&A threa
 
 You need **Node 20+** and **MongoDB** (local, or a free Atlas cluster).
 
-- **Windows:** double-click `RUN-CourseCompass.bat`. It does everything below.
+- **Windows:** double-click `RUN-CourseCompass.bat`. It checks MongoDB, installs the packages, writes `server/.env`, loads the demo data and opens the server and the client.
 - **By hand**, the server:
 
 ```bash
@@ -156,7 +157,7 @@ Use **Render** for the app and **MongoDB Atlas** for the database.
 
 ---
 
-## Folder layout
+## Where things are
 
 ```
 server/src/
@@ -184,10 +185,20 @@ The reader and the maths here are our own.
 
 ---
 
-## Authors
+## Team
+
+Faiaz led the project: he designed the system, built its core and shared the
+remaining modules with Sinthia, reviewing each one before it was merged.
 
 - **Faiaz Abrar Zaman Pronoy** (ফাইয়াজ আবরার জামান প্রনয়), lead developer
+  - The server: API design, sign in, roles, validation and error handling
+  - The CGPA calculator, including the grade sheet PDF reader and BRACU's rules
+  - The semester planner and its prerequisite checks
+  - The Q&A board, the admin panel and the test suite
 - **Sinthia Khandoker** (সিনথিয়া খন্দকার)
+  - Course reviews, helpful votes and comments
+  - The study desk: tasks, calendar, notes and the focus timer
+  - The Bangla translation
 
 ## Licence
 
