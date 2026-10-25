@@ -1,9 +1,3 @@
-/*! BRACU Course Compass. Copyright 2026 Faiaz Abrar Zaman Pronoy and Sinthia Khandoker. All rights reserved. See LICENSE. */
-/* Course Compass.
-   Grape purple with a lime needle, on a bright orchid map with lime and
-   peach light behind it. Everything below reads from these variables, so
-   dark mode is the second block and nothing else. */
-
 :root {
   --ground: #f4ecff;
   --glow-a: #e2f7b5;
@@ -28,7 +22,6 @@
   --amber-lo: #fff1d6;
   --shadow: 23 18 46;
   --dot: rgb(122 34 201 / 0.11);
-  /* panels that stay dark in both themes, and the highlighter behind the hero */
   --night: #1d0f33;
   --on-night: #f7f0ff;
   --marker: var(--lime);
@@ -77,7 +70,6 @@
 
 html {
   -webkit-text-size-adjust: 100%;
-  /* three soft lights across the page, so it is never one flat tint */
   background-color: var(--ground);
   background-image:
     radial-gradient(900px 540px at 0% 0%, var(--glow-a), transparent 65%),
@@ -92,7 +84,6 @@ body {
   font-size: 16px;
   line-height: 1.6;
   color: var(--ink);
-  /* a faint dot grid, like the paper a route gets drawn on */
   background-image: radial-gradient(var(--dot) 1.2px, transparent 1.3px);
   background-size: 22px 22px;
   -webkit-font-smoothing: antialiased;
@@ -121,13 +112,11 @@ html[lang='bn'] :is(h1, h2, h3, h4) {
 p {
   margin: 0;
 }
-/* no single word left alone on the last line */
 p,
 li,
 dd {
   text-wrap: pretty;
 }
-/* longer reading text sits justified, hyphenated so the gaps stay even */
 .lead,
 .justify {
   text-align: justify;
@@ -172,8 +161,6 @@ a {
   top: 12px;
 }
 
-/* ---------------------------------------------------------------- layout */
-
 .page {
   width: 100%;
   max-width: 1180px;
@@ -210,7 +197,6 @@ a {
 .grid-4 {
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
 }
-/* numbers are short, so two fit side by side even on a phone */
 .grid-stats {
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 12px;
@@ -230,8 +216,6 @@ a {
     grid-template-columns: minmax(0, 1fr);
   }
 }
-
-/* ------------------------------------------------------------ navigation */
 
 .topbar {
   position: sticky;
@@ -408,8 +392,6 @@ kbd {
   color: var(--ink-2);
 }
 
-/* ---------------------------------------------------------------- pieces */
-
 .card {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -424,7 +406,6 @@ kbd {
     padding: 16px;
   }
 }
-/* a card that is one big link, with other buttons still usable inside it */
 .course-card {
   position: relative;
   transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
@@ -489,7 +470,6 @@ html[lang='bn'] .eyebrow {
   text-align: center;
 }
 
-/* course codes are always set in mono on lime, so they read as codes */
 .code {
   display: inline-flex;
   align-items: center;
@@ -744,7 +724,6 @@ select.field {
   color: var(--ink-2);
 }
 
-/* page headings: a small mono label, the title, one line under it */
 .page-head {
   margin-bottom: 26px;
 }
@@ -808,7 +787,6 @@ select.field {
   color: #17122e;
 }
 
-/* a five step bar, for difficulty and workload */
 .meter {
   display: inline-flex;
   gap: 3px;
@@ -902,8 +880,6 @@ a.link-row:hover {
 .lime-panel .muted {
   color: #3d4a18;
 }
-/* the big violet blocks keep a deep violet in dark mode too; the lighter
-   dark-mode violet would put the lime and white text on them under AA */
 .violet-panel {
   background: var(--panel);
   color: #ffffff;
@@ -935,8 +911,6 @@ a.link-row:hover {
     transition: none !important;
   }
 }
-
-/* ------------------------------------------------------------ ant design */
 
 .ant-modal .ant-modal-title {
   font-family: var(--display);
@@ -980,7 +954,6 @@ a.link-row:hover {
   color: var(--ink-2) !important;
 }
 
-/* printing a note: only the note itself */
 @media print {
   body {
     background: #fff;
@@ -992,8 +965,6 @@ a.link-row:hover {
   }
 }
 
-/* sonner's rich colours sit just under AA on the light side; html raises
-   the specificity over the styles sonner injects at runtime */
 html [data-sonner-toaster][data-theme='light'] {
   --success-text: #1f5c00;
   --info-text: #1d3f9e;
@@ -1001,15 +972,12 @@ html [data-sonner-toaster][data-theme='light'] {
   --error-text: #a3201c;
 }
 
-/* on a phone a row of mixed-width buttons looks ragged, so they share the width */
 @media (max-width: 640px) {
   .actions > .btn {
     flex: 1 1 100%;
   }
 }
 
-/* ------------------------------------------------------------ sign in */
-/* one centred card on the dot grid, demo accounts first */
 .auth-page {
   min-height: 100vh;
   display: flex;
@@ -1114,7 +1082,6 @@ html [data-sonner-toaster][data-theme='light'] {
   text-wrap: balance;
 }
 
-/* .stat span greys its labels; the stars inside a stat keep their gold */
 .stat .stars {
   color: #d9a200;
 }
@@ -1122,7 +1089,6 @@ html [data-sonner-toaster][data-theme='light'] {
   color: var(--line-2);
 }
 
-/* ------------------------------------------------------------ cgpa page */
 .summary-strip {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -1186,7 +1152,6 @@ html [data-sonner-toaster][data-theme='light'] {
   text-align: right;
 }
 
-/* landing feature cards: all alike, and each one opens its page */
 .feature-card {
   display: block;
   color: var(--ink);
@@ -1212,7 +1177,6 @@ html [data-sonner-toaster][data-theme='light'] {
   color: var(--lime);
 }
 
-/* ---------------------------------------------------------- cgpa page */
 .course-edit {
   display: grid;
   grid-template-columns: 110px minmax(0, 1fr) 80px auto;
@@ -1242,7 +1206,6 @@ html [data-sonner-toaster][data-theme='light'] {
   .course-edit .edit-actions {
     grid-area: actions;
   }
-  /* the name gets its own line; the grade and buttons sit under it on the right */
   .course-line {
     flex-wrap: wrap;
   }
@@ -1261,7 +1224,6 @@ html [data-sonner-toaster][data-theme='light'] {
   color: var(--lime-ink);
   font-weight: 700;
 }
-/* the CGPA pinned to the bottom while grades are being changed */
 .live {
   position: sticky;
   bottom: 14px;

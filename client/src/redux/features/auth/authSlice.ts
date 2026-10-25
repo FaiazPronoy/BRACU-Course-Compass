@@ -16,7 +16,6 @@ const authSlice = createSlice({
       state.token = action.payload.token;
       state.user = action.payload.user;
     },
-    // profile edits change the person but not the session
     updateUser: (state, action: PayloadAction<User>) => {
       state.user = action.payload;
     },

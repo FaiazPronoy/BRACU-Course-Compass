@@ -1,7 +1,6 @@
 import { useLang } from '../i18n/LangContext';
 import type { Sums } from '../lib/engine/grades';
 
-// the whole CGPA, step by step, so anyone can redo it on a phone calculator
 export default function CgpaByHand({ sums, cgpa }: { sums: Sums | null; cgpa: number | null }) {
   const { t, num } = useLang();
   const steps = (keys: string[]) => (

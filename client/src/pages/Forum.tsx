@@ -8,6 +8,7 @@ import { useLang } from '../i18n/LangContext';
 import api from '../lib/api';
 import type { Thread } from '../lib/types';
 import { useAuth } from '../redux/store';
+import { useLatest } from '../lib/useLatest';
 
 export default function Forum() {
   const { t, num } = useLang();
@@ -25,7 +26,6 @@ export default function Forum() {
   const search = params.get('search') || '';
   const mine = params.get('mine') === '1';
 
-  // several filters can change in one click, so they are applied together
   const set = (changes: Record<string, string>) => {
     const next = new URLSearchParams(params);
     next.delete('ask');
@@ -40,10 +40,15 @@ export default function Forum() {
     api.get('/threads/courses').then((r) => setBusy(r.data)).catch(() => {});
   }, []);
 
+  const latest = useLatest({ search, set });
+
   useEffect(() => {
-    const id = setTimeout(() => typed.trim() !== search && set({ search: typed.trim() }), 300);
+    const id = setTimeout(() => {
+      const { search, set } = latest.current;
+      if (typed.trim() !== search) set({ search: typed.trim() });
+    }, 300);
     return () => clearTimeout(id);
-  }, [typed]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [typed, latest]);
 
   useEffect(() => {
     setThreads(null);

@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { courses } from '../src/catalogue';
 
-// The CSE and CS course sequence sheet, row by row: hard prerequisites, then
-// soft ones. If BRACU changes a rule, change it here and in the catalogue.
 const sheet: Record<string, [string[], string[]]> = {
   CSE111: [['CSE110'], []],
   CSE220: [['CSE111', 'CSE230'], []],

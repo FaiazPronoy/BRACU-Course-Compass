@@ -20,7 +20,6 @@ export async function api(
   try {
     json = await res.json();
   } catch {
-    // some responses have no body
   }
   return { status: res.status, body: json };
 }
@@ -38,7 +37,6 @@ export async function withDb<T>(fn: (db: any) => Promise<T>): Promise<T> {
 let counter = 0;
 const unique = () => `${Date.now().toString(36)}${counter++}`;
 
-// registers through the API so the password hashing hook runs
 export async function createStudent(name = 'Test Student', department = 'CSE') {
   const email = `s${unique()}@g.bracu.ac.bd`;
   const password = 'Student@123';
@@ -52,7 +50,6 @@ export async function createAdmin() {
   return student;
 }
 
-// each test file loads this module afresh, so start somewhere random to keep codes apart
 let codeCounter = Math.floor(Math.random() * 17000);
 export const newCode = () => `T${String.fromCharCode(65 + (codeCounter % 26))}${String.fromCharCode(65 + Math.floor(codeCounter / 26) % 26)}${String(codeCounter++ % 1000).padStart(3, '0')}`;
 

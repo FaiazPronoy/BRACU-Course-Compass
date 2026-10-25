@@ -6,6 +6,7 @@ import CourseCard from '../components/CourseCard';
 import { useLang } from '../i18n/LangContext';
 import api from '../lib/api';
 import type { Course } from '../lib/types';
+import { useLatest } from '../lib/useLatest';
 
 const SORTS = [['code', 'courses.sortCode'], ['rating', 'courses.sortRating'], ['reviews', 'courses.sortReviews'], ['easiest', 'courses.sortEasiest']];
 
@@ -30,13 +31,15 @@ export default function Courses() {
     api.get('/departments').then((r) => setDepts(r.data)).catch(() => {});
   }, []);
 
-  // typing searches after a short pause instead of on every key
+  const latest = useLatest({ search, update });
+
   useEffect(() => {
     const id = setTimeout(() => {
+      const { search, update } = latest.current;
       if (typed.trim() !== search) update('search', typed.trim());
     }, 300);
     return () => clearTimeout(id);
-  }, [typed]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [typed, latest]);
 
   useEffect(() => {
     const q = new URLSearchParams();

@@ -7,13 +7,13 @@ const a = (code: string, grade: Grade, semester: string, credits = 3): Attempt =
 
 describe('which courses can come back', () => {
   const list = [
-    a('OLD101', 'B', 'Summer 2025'), // three semesters before Fall 2026: past the window
-    a('WIN101', 'C', 'Fall 2025'), // the window is Spring and Summer 2026: Fall 2026 is too late
-    a('NEW101', 'B-', 'Spring 2026'), // repeat by Fall 2026
-    a('NEW102', 'A', 'Spring 2026'), // already an A, nothing to gain
-    a('FAIL01', 'F', 'Summer 2025'), // a retake has no time limit
-    a('DONE01', 'C', 'Fall 2025'), a('DONE01', 'B', 'Spring 2026'), // repeated once already
-    a('F3X001', 'F', 'Fall 2024'), a('F3X001', 'F', 'Spring 2025'), a('F3X001', 'F', 'Summer 2025'), // both retakes used
+    a('OLD101', 'B', 'Summer 2025'),
+    a('WIN101', 'C', 'Fall 2025'),
+    a('NEW101', 'B-', 'Spring 2026'),
+    a('NEW102', 'A', 'Spring 2026'),
+    a('FAIL01', 'F', 'Summer 2025'),
+    a('DONE01', 'C', 'Fall 2025'), a('DONE01', 'B', 'Spring 2026'),
+    a('F3X001', 'F', 'Fall 2024'), a('F3X001', 'F', 'Spring 2025'), a('F3X001', 'F', 'Summer 2025'),
   ];
   const list2 = candidates(list, 'Fall 2026', 'A');
   const find = (code: string) => list2.find((c) => c.attempt.code === code);
@@ -56,7 +56,6 @@ describe('the best plan', () => {
     const t = totals(list);
     const plan = bestPlan(t.sums, candidates(list, 'Spring 2026', 'A'), 1);
     expect(plan.chosen.map((c) => c.attempt.code)).toEqual(['A1']);
-    // same as actually having an A in A1
     expect(plan.cgpa).toBe(totals([a('A1', 'A', 'Fall 2025'), ...list.slice(1)]).cgpa);
     expect(bestPlan(t.sums, candidates(list, 'Spring 2026', 'A'), 5).steps.map((s) => s.cgpa)).toEqual([3.75, 4]);
   });
@@ -70,7 +69,6 @@ describe('the best plan', () => {
   });
 
   it('is never beaten by trying every combination', () => {
-    // a small random number generator with a fixed seed, so the test is repeatable
     let seed = 20260928;
     const rand = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
     for (let round = 0; round < 300; round++) {

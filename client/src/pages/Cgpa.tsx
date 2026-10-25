@@ -30,20 +30,16 @@ const TABS: Tab[] = ['overview', 'transcript', 'whatif', 'repeat', 'target', 'ru
 const HOPES: LetterGrade[] = ['A', 'A-', 'B+', 'B'];
 
 const gp = (g: string) => GRADE_POINTS[g as LetterGrade] ?? 0;
-// the difference between two CGPAs that are already rounded to two places
 const diff = (a: number, b: number) => Math.round((a - b) * 100) / 100;
 const keyOf = (r: GradeRecord) => r._id || `${r.code}|${r.semester}`;
-// a record as the server takes it back, without the fields it adds
 const plainRecord = (r: GradeRecord): GradeRecord => ({ code: r.code, title: r.title, credits: r.credits, grade: r.grade, semester: r.semester });
 const sameList = (a: GradeRecord[], b: GradeRecord[]) => {
   const line = (r: GradeRecord) => [r.code, r.semester, r.grade, r.credits, r.title].join('|');
   return JSON.stringify(a.map(line).sort()) === JSON.stringify(b.map(line).sort());
 };
-// the engine works on attempts; the page keeps the records the API sends
 const toAttempts = (records: GradeRecord[]): Attempt[] =>
   records.map((r) => ({ id: keyOf(r), code: r.code, title: r.title, credits: r.credits, grade: r.grade as Grade, semester: r.semester }));
 
-// which program's total to plan against: picked here, found on an uploaded sheet, or the account's department
 function useProgram() {
   const { user } = useAuth();
   const fromDept = user?.department === 'LAW' ? 'LLB' : user?.department;
@@ -69,7 +65,6 @@ function useProgram() {
       c ? localStorage.setItem('cc-program', c) : localStorage.removeItem('cc-program');
       n ? localStorage.setItem('cc-program-credits', String(n)) : localStorage.removeItem('cc-program-credits');
     } catch {
-      /* private mode */
     }
   };
   const program = programByCode(code);
@@ -108,7 +103,6 @@ function Summary({ attempts, rows, after, probation }: { attempts: Attempt[]; ro
   );
 }
 
-// the small panel beside every tab: the lists, the grade count, and the program total
 function SidePanel({ attempts, rows, program }: { attempts: Attempt[]; rows: TermRow[]; program: ReturnType<typeof useProgram> }) {
   const { t, num } = useLang();
   const s = totals(attempts);
@@ -165,7 +159,6 @@ function SidePanel({ attempts, rows, program }: { attempts: Attempt[]; rows: Ter
   );
 }
 
-// where the CGPA lands at graduation if the credits left go a certain way
 function Outlook({ sums, exact, left, cgpa }: { sums: Sums; exact: number | null; left: number | null; cgpa: number | null }) {
   const { t, num } = useLang();
   const [custom, setCustom] = useState<LetterGrade>('B+');
@@ -214,8 +207,6 @@ function Outlook({ sums, exact, left, cgpa }: { sums: Sums; exact: number | null
     </section>
   );
 }
-
-// ------------------------------------------------------------------ upload
 
 function Upload({ onRead }: { onRead: (sheet: ParsedSheet, file: string) => void }) {
   const { t } = useLang();
@@ -307,8 +298,6 @@ function ImportPreview({ sheet, file, hasRecords, onCancel, onConfirm }: {
   );
 }
 
-// ---------------------------------------------------------------- overview
-
 const LEVEL_TOP: Record<string, number> = { freshman: 30, sophomore: 60, junior: 90, senior: 140 };
 const LEVELS = ['freshman', 'sophomore', 'junior', 'senior', 'advancedSenior'];
 
@@ -399,9 +388,6 @@ function OverviewTab({ rows, attempts, probation, onUpload, onSample, empty }: {
   );
 }
 
-// -------------------------------------------------------------- transcript
-
-// one course on My grades: the grade changes in place, code, title and credits through Edit
 function CourseLine({ r, on, onGrade, onSave, onRemove }: {
   r: GradeRecord; on: boolean; onGrade: (g: string) => void; onSave: (next: Partial<GradeRecord>) => Promise<boolean>; onRemove: () => void;
 }) {
@@ -454,7 +440,6 @@ function TranscriptTab({ records, attempts, catalogue, add, remove, replaceAll, 
   const [draft, setDraft] = useState({ code: '', credits: 3, grade: 'A', semester: recentSemesters()[1] });
   const known = catalogue.find((c) => c.code === draft.code.toUpperCase());
   const counted = new Set([...totals(attempts).counted.values()].map((a) => a.id));
-  // how things stood when the tab opened, so every change can be shown and undone
   const opened = useRef({ cgpa: totals(attempts).cgpa, records: records.map(plainRecord) });
   const codeInput = useRef<HTMLInputElement>(null);
   const run = async (job: () => Promise<void>) => {
@@ -568,11 +553,8 @@ function TranscriptTab({ records, attempts, catalogue, add, remove, replaceAll, 
   );
 }
 
-// ----------------------------------------------------------------- what if
-
 interface Row { key: string; code: string; title: string; credits: number; grade: string; dropped: boolean; added?: boolean }
 
-// the sandbox holds every course that counts; the list only shows the ones worth changing
 const fromAttempts = (attempts: Attempt[]): Row[] =>
   [...totals(attempts).counted.values()]
     .sort((a, b) => semesterIndex(b.semester) - semesterIndex(a.semester) || a.code.localeCompare(b.code))
@@ -586,10 +568,8 @@ function WhatIfTab({ attempts, rows, setRows }: { attempts: Attempt[]; rows: Row
   const original = new Map(attempts.map((a) => [a.id, a.grade]));
   const set = (key: string, patch: Partial<Row>) => setRows(rows.map((r) => (r.key === key ? { ...r, ...patch } : r)));
   const changed = rows.filter((r) => r.added || r.dropped || r.grade !== original.get(r.key)).length;
-  // A and A+ are already 4.00, so there is nothing to try on them; everything else is listed
   const shown = rows.filter((r) => {
     const was = original.get(r.key) ?? r.grade;
-    // zero-credit remedial courses cannot move the CGPA, so they stay out too
     return r.added || (was in GRADE_POINTS && gp(was) < 4 && r.credits > 0);
   });
   const hidden = rows.length - shown.length;
@@ -646,9 +626,6 @@ function WhatIfTab({ attempts, rows, setRows }: { attempts: Attempt[]; rows: Row
   );
 }
 
-// ------------------------------------------------------ repeat and retake
-
-// how far back a course was first taken, counted up to the semester being planned
 function statusOf(c: Candidate, next: string, t: (k: string, v?: Record<string, string | number>) => string) {
   if (c.allowed === 'yes') return { tone: 'lime', text: c.kind === 'retake' ? t('cgpa.st_retake') : t('cgpa.st_repeatBy', { sem: c.lastChance! }) };
   if (c.allowed === 'permission') {
@@ -660,14 +637,12 @@ function statusOf(c: Candidate, next: string, t: (k: string, v?: Record<string, 
 
 function RepeatTab({ attempts, next, setNext, latest }: { attempts: Attempt[]; next: string; setNext: (s: string) => void; latest: string }) {
   const { t, num, lang } = useLang();
-  // "an A", "a B+" in English; Bangla needs no article
   const said = (g: LetterGrade) => (lang === 'bn' ? g : g.startsWith('A') ? `an ${g}` : `a ${g}`);
   const [scope, setScope] = useState<'window' | 'all'>('window');
   const [count, setCount] = useState(3);
   const [hope, setHope] = useState<LetterGrade>('A');
   const [picked, setPicked] = useState<Record<string, LetterGrade | undefined>>({});
   const s = totals(attempts);
-  // courses already at the grade hoped for have nothing to gain, so the engine leaves them out
   const all = useMemo(() => candidates(attempts, next, hope), [attempts, next, hope]);
   const pool = all.filter((c) => (scope === 'window' ? c.allowed === 'yes' : c.allowed !== 'no'));
   const max = Math.max(1, Math.min(10, pool.length));
@@ -799,8 +774,6 @@ function RepeatTab({ attempts, next, setNext, latest }: { attempts: Attempt[]; n
   );
 }
 
-// ------------------------------------------------------------------ target
-
 function TargetTab({ attempts, next, needed, onRepeat }: { attempts: Attempt[]; next: string; needed: number | null; onRepeat: () => void }) {
   const { t, num } = useLang();
   const s = totals(attempts);
@@ -897,8 +870,6 @@ function TargetTab({ attempts, next, needed, onRepeat }: { attempts: Attempt[]; 
   );
 }
 
-// ------------------------------------------------------------ plan ahead
-
 interface NextRow { key: number; credits: number; grade: LetterGrade }
 let nextKey = 0;
 
@@ -946,7 +917,6 @@ function NextSemester({ sums }: { sums: Sums }) {
   );
 }
 
-// for someone without a transcript: a CGPA is already rounded, so this is an estimate and says so
 function Quick() {
   const { t, num } = useLang();
   const [cgpa, setCgpa] = useState(3.2);
@@ -992,8 +962,6 @@ function Quick() {
   );
 }
 
-// ------------------------------------------------------------------- rules
-
 function RulesTab({ attempts }: { attempts: Attempt[] }) {
   const { t, num } = useLang();
   const s = attempts.length ? totals(attempts) : null;
@@ -1033,8 +1001,6 @@ function RulesTab({ attempts }: { attempts: Attempt[] }) {
   );
 }
 
-// -------------------------------------------------------------------- page
-
 export default function Cgpa() {
   const { t, num, errorText } = useLang();
   const { records, add, remove, replaceAll, clear, saved } = useTranscript();
@@ -1053,7 +1019,6 @@ export default function Cgpa() {
   const attempts = useMemo(() => (records ? toAttempts(records) : []), [records]);
   const termRows = useMemo(() => timeline(attempts), [attempts]);
 
-  // the sandbox starts over whenever the real transcript changes
   useEffect(() => {
     setRows(fromAttempts(attempts));
   }, [attempts]);

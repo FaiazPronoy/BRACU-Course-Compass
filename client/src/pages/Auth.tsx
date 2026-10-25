@@ -10,8 +10,6 @@ import { inSite } from '../lib/paths';
 import { setUser } from '../redux/features/auth/authSlice';
 import { useAppDispatch, useAuth } from '../redux/store';
 
-// the accounts `npm run seed` creates, so anyone looking at the project can
-// get in with one tap; they are in the README as well
 const DEMO = [
   { key: 'demoStudent', email: 'ayesha@g.bracu.ac.bd', password: 'Student@123', icon: <UserOutlined /> },
   { key: 'demoAdmin', email: 'admin@bracu.ac.bd', password: 'Admin@1234', icon: <DashboardOutlined /> },

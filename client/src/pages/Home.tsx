@@ -22,11 +22,7 @@ import api from '../lib/api';
 import type { CalendarEvent, CourseRef, Note, Review, Todo } from '../lib/types';
 import { useAuth } from '../redux/store';
 
-/* ------------------------------------------------------------------ visitors */
-
 function CompassArt() {
-  // a compass rose drawn in the site colours; the needle points north-east,
-  // towards the headline
   return (
     <svg viewBox="0 0 320 320" role="img" aria-hidden="true" style={{ width: '100%', maxWidth: 360 }}>
       <circle cx="160" cy="160" r="150" fill="var(--surface)" stroke="var(--line-2)" strokeWidth="2" />
@@ -48,7 +44,6 @@ function CompassArt() {
         <path d="M160 58 L176 160 L144 160 Z" fill="var(--lime)" stroke="var(--ink)" strokeWidth="2" />
       </g>
       <circle cx="160" cy="160" r="12" fill="var(--violet)" stroke="var(--surface)" strokeWidth="4" />
-      {/* course codes floating around the dial */}
       {[['CSE221', 212, 92, -8], ['MAT216', 62, 108, 6], ['CSE370', 214, 236, 5], ['PHY111', 60, 222, -5]].map(([c, x, y, r]) => (
         <g key={c as string} transform={`rotate(${r} ${x} ${y})`}>
           <rect x={(x as number) - 38} y={(y as number) - 14} width="76" height="28" rx="8" fill="var(--lime-lo)" stroke="var(--lime)" />
@@ -194,8 +189,6 @@ function Landing() {
     </>
   );
 }
-
-/* ---------------------------------------------------------------- students */
 
 interface DashData {
   tasks: Todo[];

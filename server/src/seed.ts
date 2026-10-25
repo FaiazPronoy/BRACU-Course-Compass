@@ -1,17 +1,15 @@
 import mongoose from 'mongoose';
-import config from './app/config';
-import Course from './app/modules/Course/course.model';
-import Answer from './app/modules/Forum/answer.model';
-import Thread from './app/modules/Forum/thread.model';
-import Notification from './app/modules/Notification/notification.model';
-import Plan from './app/modules/Planner/planner.model';
-import Review from './app/modules/Review/review.model';
-import ReviewComment from './app/modules/Review/reviewComment.model';
-import { CalendarEvent, Note, Todo } from './app/modules/Study/study.models';
-import User from './app/modules/User/User.model';
+import config from './config';
+import Course from './modules/course/course.model';
+import Answer from './modules/forum/answer.model';
+import Thread from './modules/forum/thread.model';
+import Notification from './modules/notification/notification.model';
+import Plan from './modules/planner/planner.model';
+import Review from './modules/review/review.model';
+import ReviewComment from './modules/review/reviewComment.model';
+import { CalendarEvent, Note, Todo } from './modules/study/study.model';
+import User from './modules/user/user.model';
 import { courses, yt } from './catalogue';
-
-// Demo data. The faculty initials in the reviews are made up.
 
 const students = [
   { name: 'Ayesha Siddiqua', email: 'ayesha@g.bracu.ac.bd', studentId: '22101045', bio: 'CSE, 3rd year. Algorithms and anything with graphs.' },
@@ -115,8 +113,6 @@ async function seed() {
   await mongoose.connect(config.database_url);
   console.log('Connected to', mongoose.connection.name);
 
-  // --catalogue brings the course list and its prerequisites up to date and
-  // leaves accounts, reviews and plans alone
   if (process.argv.includes('--catalogue')) {
     for (const { playlists, materials, description, ...rules } of courses) {
       await Course.updateOne(
@@ -130,7 +126,6 @@ async function seed() {
     return;
   }
 
-  // the launcher runs this with --if-empty on every start, so it only fills a fresh database
   if (process.argv.includes('--if-empty') && (await Course.countDocuments()) > 0) {
     console.log('Demo data is already there.');
     await mongoose.disconnect();
@@ -145,8 +140,6 @@ async function seed() {
   const people: Record<string, any> = {};
   for (const [i, s] of students.entries()) {
     const user = await User.create({ ...s, password: 'Student@123' });
-    // mongoose will not let createdAt be changed, so the dates go in through the driver;
-    // otherwise everyone "joined this week" on the admin overview
     await User.collection.updateOne({ _id: user._id }, { $set: { createdAt: daysAgo(1000 - i * 25) } });
     people[s.email.split('@')[0]] = user;
   }
@@ -159,7 +152,6 @@ async function seed() {
   const helpfulPool = Object.keys(people);
   const reviewDocs: Record<string, any> = {};
   for (const [i, [code, who, faculty, semester, rating, difficulty, workload, grade, body, tips, days]] of reviews.entries()) {
-    // a few helpful votes from other students, varied by position
     const helpful = helpfulPool.filter((p, j) => p !== who && (i + j) % 3 === 0).slice(0, (i % 5) + 1).map((p) => people[p]._id);
     const doc = await Review.create({
       course: byCode[code]._id, author: people[who]._id, faculty, semester, rating, difficulty, workload, grade, body, tips, helpful,
@@ -189,7 +181,6 @@ async function seed() {
   }
   console.log(`Created ${threads.length} forum threads`);
 
-  // Ayesha is the demo student: her desk, plan and inbox are filled in
   const me = people.ayesha;
   await User.updateOne({ _id: me._id }, { savedCourses: ['CSE221', 'CSE321', 'CSE370', 'CSE422'].map((c) => byCode[c]._id) });
 
@@ -215,8 +206,6 @@ async function seed() {
       content: '<p><strong>1NF</strong>: no repeating groups, every cell holds one value.</p><p><strong>2NF</strong>: 1NF, and no column depends on only part of the key.</p><p><strong>3NF</strong>: 2NF, and no column depends on another non-key column.</p>' },
   ]);
 
-  // MAT110 was retaken, so the Fall 2023 C- no longer counts (NT on her sheet),
-  // and HUM103 is not in the catalogue but still belongs on the transcript
   const grades: Array<[string, string, string, string?]> = [
     ['CSE110', 'A', 'Fall 2023'], ['ENG101', 'A', 'Fall 2023'], ['MAT110', 'C-', 'Fall 2023'], ['PHY111', 'B+', 'Fall 2023'],
     ['CSE111', 'A-', 'Spring 2024'], ['CSE230', 'A-', 'Spring 2024'], ['MAT120', 'B+', 'Spring 2024'], ['ENG102', 'A-', 'Spring 2024'],
@@ -231,7 +220,6 @@ async function seed() {
     })),
     semesters: [
       { name: 'Fall 2026', courses: ['CSE221', 'CSE321', 'CSE370', 'MAT216'].map((c) => byCode[c]._id) },
-      // CSE421 needs CSE320, which is not planned yet, so the planner flags it
       { name: 'Spring 2027', courses: ['CSE331', 'CSE340', 'CSE421', 'CSE422'].map((c) => byCode[c]._id) },
     ],
   });

@@ -1,6 +1,3 @@
-// Every piece of interface text. bn.ts has the same keys.
-// What students write (reviews, questions, notes) is never translated.
-
 const en = {
   common: {
     none: 'N/A',

@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { useLang } from '../i18n/LangContext';
 import api from '../lib/api';
 import type { CourseRef } from '../lib/types';
+import { useLatest } from '../lib/useLatest';
 
 export default function AskModal({ open, onClose, course, editing, onSaved }: {
   open: boolean;
@@ -20,12 +21,15 @@ export default function AskModal({ open, onClose, course, editing, onSaved }: {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
+  const latest = useLatest({ course, editing, hasCourses: courses.length > 0 });
+
   useEffect(() => {
     if (!open) return;
+    const { course, editing, hasCourses } = latest.current;
     setError('');
     setForm({ course: course || '', title: editing?.title || '', body: editing?.body || '' });
-    if (!editing && !courses.length) api.get('/courses').then((r) => setCourses(r.data)).catch(() => {});
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!editing && !hasCourses) api.get('/courses').then((r) => setCourses(r.data)).catch(() => {});
+  }, [open, latest]);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();

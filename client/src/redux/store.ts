@@ -4,7 +4,6 @@ import { FLUSH, PAUSE, PERSIST, persistReducer, persistStore, PURGE, REGISTER, R
 import storage from 'redux-persist/lib/storage';
 import authReducer from './features/auth/authSlice';
 
-// only the session is kept between visits; everything else is fetched fresh
 const persistedAuth = persistReducer({ key: 'auth', storage }, authReducer);
 
 export const store = configureStore({

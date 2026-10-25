@@ -1,18 +1,10 @@
-// BRAC University's undergraduate programs and the credits each needs.
-// Checked September 2026 against each program's page on bracu.ac.bd (Program
-// Finder) and the undergraduate admission brochure. Curricula change with the
-// intake, so the page always lets a student correct the total.
-//   - Anthropology: brochure 120, current program page 130
-//   - Architecture: brochure 201, current program page 207
-//   - LLB: brochure 135 (the program page lists courses but no total)
 export interface Program {
   code: string;
   name: string;
   credits: number;
-  // semesters allowed on probation before withdrawal is considered
   probation: number;
-  load: [number, number]; // usual credits a semester, from the policy page
-  match: RegExp; // how the program line on the grade sheet reads
+  load: [number, number];
+  match: RegExp;
 }
 
 export const PROGRAMS: Program[] = [
@@ -38,8 +30,6 @@ export const PROGRAMS: Program[] = [
 
 export const programByCode = (code: string | null | undefined) => PROGRAMS.find((p) => p.code === code) ?? null;
 
-// from the "PROGRAM: ..." line of the grade sheet, or failing that the file
-// name Connect gives it (20101234_UG_CSE_Gradesheet_Web.pdf)
 export function detectProgram(programLine: string, fileName = ''): Program | null {
   const line = programLine.toUpperCase();
   if (line) {

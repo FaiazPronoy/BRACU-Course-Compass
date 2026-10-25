@@ -1,5 +1,3 @@
-// বাংলা. Same keys as en.ts; anything missing falls back to English.
-
 const bn = {
   common: {
     none: 'নেই',
@@ -796,7 +794,6 @@ const bn = {
     text: 'এই পাতাটা নেই। আপনার কোর্স আর প্ল্যান যেখানে ছিল সেখানেই আছে।',
     home: 'হোমে ফিরে যান',
   },
-  // the API answers in English; these are the messages a student can see
   server: {
     'A course code looks like CSE220.': 'কোর্স কোড দেখতে এমন: CSE220।',
     'Credits run from 0 to 6.': 'ক্রেডিট ০ থেকে ৬ এর মধ্যে হয়।',

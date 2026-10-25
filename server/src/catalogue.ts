@@ -1,8 +1,3 @@
-// The course catalogue. Prerequisites follow the CSE and CS course sequence
-// sheet shared with students; the EEE rows follow the department's V3 sequence
-// (intake from Spring 2020). The descriptions are my own summaries, and the
-// playlists are real and were checked to exist.
-
 export const yt = (id: string) => `https://www.youtube.com/playlist?list=${id}`;
 
 export const courses = [

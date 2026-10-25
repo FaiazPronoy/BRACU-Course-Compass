@@ -12,8 +12,6 @@ import Planner from './pages/Planner';
 import Profile from './pages/Profile';
 import Thread from './pages/Thread';
 
-// the note editor (Quill) and pdf.js are the heaviest things in the app, so
-// the pages that use them and the admin screens only load when opened
 const Study = lazy(() => import('./pages/Study'));
 const Watch = lazy(() => import('./pages/Watch'));
 const Admin = lazy(() => import('./pages/Admin'));

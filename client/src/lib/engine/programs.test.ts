@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { titleCase } from './gradesheet';
 import { detectProgram, PROGRAMS } from './programs';
 
-// the program line as the grade sheet prints it, for every undergraduate program
 const lines: [string, string][] = [
   ['BACHELOR OF SCIENCE IN COMPUTER SCIENCE AND ENGINEERING', 'CSE'],
   ['BACHELOR OF SCIENCE IN COMPUTER SCIENCE', 'CS'],

@@ -24,6 +24,7 @@ import { useLang } from '../i18n/LangContext';
 import api from '../lib/api';
 import type { CalendarEvent, CourseRef, EventKind, Note, Todo } from '../lib/types';
 import { dueLabel } from './Home';
+import { useLatest } from '../lib/useLatest';
 
 type Tab = 'tasks' | 'calendar' | 'notes' | 'focus';
 
@@ -34,8 +35,6 @@ function useCourses() {
   }, []);
   return courses.map((c) => ({ value: c.code, label: `${c.code} · ${c.title}` }));
 }
-
-/* -------------------------------------------------------------------- tasks */
 
 function Tasks() {
   const { t, errorText } = useLang();
@@ -148,8 +147,6 @@ function Tasks() {
   );
 }
 
-/* ----------------------------------------------------------------- calendar */
-
 const KINDS: EventKind[] = ['class', 'quiz', 'exam', 'assignment', 'lab', 'other'];
 const kindColour: Record<EventKind, string> = { exam: 'var(--coral)', quiz: 'var(--amber)', assignment: 'var(--violet)', lab: 'var(--lime-ink)', class: 'var(--ink-2)', other: 'var(--ink-2)' };
 
@@ -177,7 +174,6 @@ function Calendar() {
     return map;
   }, [events, todos]);
 
-  // six rows of seven, starting on the Sunday before the 1st
   const cells = Array.from({ length: 42 }, (_, i) => month.startOf('month').startOf('week').add(i, 'day'));
   const weekdays = cells.slice(0, 7).map((d) => date(d.toDate(), 'dd'));
   const day = byDay.get(picked.format('YYYY-MM-DD'));
@@ -298,8 +294,6 @@ function Calendar() {
   );
 }
 
-/* -------------------------------------------------------------------- notes */
-
 function Notes() {
   const { t, date, errorText } = useLang();
   const [params, setParams] = useSearchParams();
@@ -321,7 +315,6 @@ function Notes() {
     }
   }, [t, errorText, setParams]);
 
-  // "New note" on a course page lands here with ?new=1&course=CSE221
   const creating = useRef(false);
   useEffect(() => {
     if (params.get('new') === '1' && !creating.current) {
@@ -378,8 +371,6 @@ function Notes() {
   );
 }
 
-/* -------------------------------------------------------------------- focus */
-
 const LENGTHS = { work: 25 * 60, short: 5 * 60, long: 15 * 60 };
 
 function Focus() {
@@ -402,13 +393,16 @@ function Focus() {
     return () => clearInterval(id);
   }, [running]);
 
+  const latest = useLatest({ mode, rounds, todayKey, t });
+
   useEffect(() => {
     if (left > 0) return;
+    const { mode, rounds, todayKey, t } = latest.current;
     setRunning(false);
     if (mode === 'work') {
       const next = rounds + 1;
       setRounds(next);
-      try { localStorage.setItem(todayKey, String(next)); } catch { /* private mode */ }
+      try { localStorage.setItem(todayKey, String(next)); } catch { }
       toast.success(t('study.breakTime'));
       const brk = next % 4 === 0 ? 'long' : 'short';
       setMode(brk);
@@ -418,9 +412,8 @@ function Focus() {
       setMode('work');
       setLeft(LENGTHS.work);
     }
-  }, [left]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [left, latest]);
 
-  // the tab title shows the time left, so it is visible from another tab
   useEffect(() => {
     const base = document.title;
     if (running) document.title = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')} · ${t('study.focusTitle')}`;

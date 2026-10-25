@@ -3,9 +3,6 @@ import { useAuth } from '../redux/store';
 import api from './api';
 import type { GradeRecord, Plan } from './types';
 
-// The CGPA page works for anyone. A signed-in student's grades live in their
-// account; a visitor's stay in this browser only, so trying the calculator
-// never needs an account and never sends a grade sheet anywhere.
 const KEY = 'cc-transcript';
 
 const readLocal = (): GradeRecord[] => {
@@ -21,7 +18,6 @@ const writeLocal = (list: GradeRecord[]) => {
   try {
     localStorage.setItem(KEY, JSON.stringify(list));
   } catch {
-    /* private mode: it just will not survive a reload */
   }
 };
 
@@ -40,7 +36,6 @@ export function useTranscript() {
   }, [token]);
 
   const keepLocal = (list: GradeRecord[]) => {
-    // the local list gets ids too, so rows can be removed the same way
     const withIds = list.map((r) => ({ ...r, _id: r._id || Math.random().toString(36).slice(2) }));
     writeLocal(withIds);
     setRecords(withIds);
@@ -49,7 +44,6 @@ export function useTranscript() {
   const add = useCallback(
     async (r: GradeRecord) => {
       if (token) return fromPlan((await api.post('/planner/records', r)).data);
-      // same rule as the server: one attempt per course per semester
       keepLocal([...readLocal().filter((x) => !(x.code === r.code && x.semester === r.semester)), r]);
     },
     [token]

@@ -6,7 +6,6 @@ import { useLang } from '../i18n/LangContext';
 import api from '../lib/api';
 import type { Course } from '../lib/types';
 
-// the catalogue is small, so it is fetched once and filtered in the browser
 let cache: Course[] | null = null;
 
 export default function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void }) {

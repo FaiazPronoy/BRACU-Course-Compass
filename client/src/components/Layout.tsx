@@ -40,7 +40,6 @@ function Notifications() {
     }).catch(() => {});
   }, []);
 
-  // checked again on every page change, which is often enough for replies
   useEffect(load, [load, location.pathname]);
 
   const onOpen = (next: boolean) => {
@@ -99,8 +98,6 @@ export default function Layout() {
   const [sheet, setSheet] = useState(false);
   const [palette, setPalette] = useState(false);
 
-  // the saved session is checked against the server once per visit, so a
-  // deleted account or an old token does not linger
   useEffect(() => {
     if (!token) return;
     api.get('/auth/me').then((r) => dispatch(updateUser(r.data.user))).catch(() => {});
@@ -111,7 +108,6 @@ export default function Layout() {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
-  // Ctrl+K (or /) opens the course search from anywhere
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const typing = /INPUT|TEXTAREA|SELECT/.test((e.target as HTMLElement)?.tagName) || (e.target as HTMLElement)?.isContentEditable;

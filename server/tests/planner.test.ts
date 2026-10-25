@@ -34,7 +34,6 @@ describe('the semester plan', () => {
     const after = await api('POST', `/planner/semesters/${semId}/courses`, { token: s.token, body: { course: next.code } });
     expect(after.body.semesters[0].courses[0].missing).toEqual([base.code]);
 
-    // passing the prerequisite clears the warning
     const fixed = await grade(s.token, { code: base.code, grade: 'B', semester: 'Fall 2026' });
     expect(fixed.body.semesters[0].courses[0].missing).toEqual([]);
   });
@@ -92,7 +91,6 @@ describe('grades and CGPA, the way BRACU counts them', () => {
     const one = await createCourse(admin.token, { credits: 1 });
     await grade(s.token, { code: three.code, grade: 'A' });
     const res = await grade(s.token, { code: one.code, grade: 'C' });
-    // (4.0 * 3 + 2.0 * 1) / 4 = 3.5
     expect(res.body.summary).toMatchObject({ cgpa: 3.5, credits: 4, attempted: 4, standing: 'satisfactory' });
   });
 
@@ -117,7 +115,6 @@ describe('grades and CGPA, the way BRACU counts them', () => {
     const course = await createCourse(admin.token);
     await grade(s.token, { code: course.code, grade: 'A', semester: 'Summer 2025' });
     const res = await grade(s.token, { code: course.code, grade: 'B', semester: 'Spring 2025' });
-    // Spring comes before Summer, so the A from Summer is the latest
     expect(res.body.summary.cgpa).toBe(4);
   });
 
@@ -182,7 +179,6 @@ describe('grades and CGPA, the way BRACU counts them', () => {
     ];
     const res = await api('PUT', '/planner/records', { token: s.token, body: { records } });
     expect(res.body.records).toHaveLength(4);
-    // (4*3 + 4*3 + 4*4) / 10, with the first CSE110 attempt left out
     expect(res.body.summary).toMatchObject({ cgpa: 4, credits: 10, attempted: 13 });
     expect((await api('PUT', '/planner/records', { token: s.token, body: { records: [] } })).status).toBe(400);
   });
@@ -207,7 +203,6 @@ describe('grades and CGPA, the way BRACU counts them', () => {
     expect((await api('GET', '/planner', { token: b.token })).body.records).toHaveLength(0);
   });
 
-  // BRACU rounds to three places first, then 5 or more in the third place rounds up
   const cgpaOf = async (grades: [string, number][]) => {
     const s = await createStudent();
     const records = grades.map(([g, credits], i) => ({ code: `RND${100 + i}`, credits, grade: g, semester: 'Fall 2025' }));
@@ -215,17 +210,13 @@ describe('grades and CGPA, the way BRACU counts them', () => {
   };
 
   it('rounds 3.895 up to 3.90 and leaves 3.894 at 3.89', async () => {
-    // 7 credits of A- and 13 of A: 77.9 / 20 = 3.895 exactly
     expect(await cgpaOf([['A-', 3], ['A-', 4], ['A', 3], ['A', 3], ['A', 3], ['A', 4]])).toBe(3.9);
-    // 53 credits of A- and 97 of A: (196.1 + 388) / 150 = 3.894 exactly
     const minus: [string, number][] = [...Array(8).fill(['A-', 6]), ['A-', 5]];
     const plain: [string, number][] = [...Array(16).fill(['A', 6]), ['A', 1]];
     expect(await cgpaOf([...minus, ...plain])).toBe(3.89);
   });
 
   it('rounds to three places before two, the way the sheet does', async () => {
-    // a real semester from a BRACU grade sheet: 156.3 points over 51 credits is
-    // 3.0647..., which the sheet prints as 3.07 (3.065, then up), not 3.06
     const grades = ['A', 'A', 'A-', 'A-', 'B+', 'B+', 'A-', 'B', 'B+', 'B', 'B', 'A-', 'B', 'A-', 'F', 'A-', 'F'];
     expect(await cgpaOf(grades.map((g) => [g, 3]))).toBe(3.07);
   });

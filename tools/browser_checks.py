@@ -1,24 +1,4 @@
 #!/usr/bin/env python3
-"""
-Browser checks for Course Compass, run in a real browser through Playwright.
-
-  1. crawl     every page a visitor, a student and the admin can reach, plus
-               every tab on them: nothing blank, no console errors
-  2. contrast  every piece of text on those pages, light and dark, against WCAG AA
-  3. phone     no page scrolls sideways at 390 px
-  4. bangla    the language switch, then 1 to 3 again with the site in Bangla
-  5. shots     screenshots of the main pages, desktop and phone
-
-Run it against a freshly seeded database, with the API on :3000 and the
-client on :5173:
-
-  cd server && npm run seed && npm run start:dev
-  cd client && npm run dev
-  python tools/browser_checks.py
-
-It uses the Edge that ships with Windows; set CC_BROWSER=chrome for Chrome.
-Needs: pip install playwright
-"""
 import os, re, sys
 from urllib.parse import urljoin, urlparse
 from playwright.sync_api import sync_playwright
@@ -50,18 +30,12 @@ def sign_in(context, email, password):
 
 def settle(page):
     page.wait_for_load_state("networkidle")
-    # skeletons are swapped for content once the API answers
     page.wait_for_timeout(300)
 
 
-# ------------------------------------------------------------------ crawl
-
 SKIP = re.compile(r"^mailto:|^https?://(?!localhost)|^#")
-# the YouTube player logs its own warnings, and react-quill still calls
-# findDOMNode in development; neither is ours to fix
 NOISE = re.compile(r"findDOMNode|youtube|googlevideo|doubleclick|ytimg|Permissions[- ]policy", re.I)
 
-# pages behind a button rather than a link, so the crawl would never find them
 EXTRA = {
     "visitor": ["/cgpa", "/cgpa?tab=rules", "/courses/CSE220?tab=reviews", "/courses/CSE220?tab=qa", "/courses/CSE220?tab=resources", "/forum?status=resolved"],
     "student": ["/study?tab=calendar", "/study?tab=notes", "/study?tab=focus", "/cgpa?tab=transcript", "/cgpa?tab=whatif", "/cgpa?tab=repeat", "/cgpa?tab=target", "/cgpa?tab=rules", "/profile",
@@ -71,7 +45,6 @@ EXTRA = {
 
 
 def crawl(context, who, limit=70):
-    """Follows every same-site link from the home page. Returns {url: errors}."""
     page = context.new_page()
     errors = []
     page.on("console", lambda m: errors.append(m.text) if m.type == "error" and not NOISE.search(m.text) else None)
@@ -83,7 +56,6 @@ def crawl(context, who, limit=70):
         if url in seen:
             continue
         seen.add(url)
-        # thirty course pages are one page as far as the crawl is concerned
         shape = re.sub(r"/[0-9a-f]{24}|/[A-Z]{3}\d{3}", "/:id", urlparse(url).path) + (urlparse(url).query and "?" + re.sub(r"=[^&]*", "", urlparse(url).query))
         per_shape[shape] = per_shape.get(shape, 0) + 1
         if per_shape[shape] > 2:
@@ -105,8 +77,6 @@ def crawl(context, who, limit=70):
     return result
 
 
-# --------------------------------------------------------------- contrast
-
 CONTRAST_JS = r"""
 () => {
   const parse = c => {
@@ -122,7 +92,6 @@ CONTRAST_JS = r"""
                                  b: top.b * top.a + under.b * (1 - top.a), a: 1});
   const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
 
-  // every background this element could be sitting on; a gradient gives one per stop
   const backgrounds = el => {
     let stack = [];
     for (let e = el; e; e = e.parentElement) {
@@ -133,8 +102,6 @@ CONTRAST_JS = r"""
           const solid = stops.filter(s => s.a >= 1), glass = stops.filter(s => s.a < 1);
           let under = solid;
           if (!under.length) {
-            // a see-through highlighter: test it over whatever is behind it
-            // (the dot grid on body is one, painted over body's own colour)
             let base = parse(cs.backgroundColor);
             if (base && base.a < 1) base = null;
             for (let b = e.parentElement; b && !base; b = b.parentElement) {

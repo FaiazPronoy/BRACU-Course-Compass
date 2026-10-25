@@ -210,7 +210,6 @@ function GradeBars({ grades }: { grades: Record<string, number> }) {
 
 type Tab = 'overview' | 'reviews' | 'qa' | 'resources' | 'notes';
 
-// programs that ask for the same thing share one line: "EEE, ECE" rather than two
 const programRules = (rules: TCourse['programPrerequisites']) => {
   const byCodes = new Map<string, string[]>();
   rules.forEach((r) => byCodes.set(r.codes.join(', '), [...(byCodes.get(r.codes.join(', ')) || []), r.program]));

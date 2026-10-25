@@ -1,8 +1,6 @@
 import { UndoOutlined } from '@ant-design/icons';
 import { useLang } from '../i18n/LangContext';
 
-// pinned to the bottom while grades are being changed: the CGPA now, next to
-// what it was, so every edit shows its effect without scrolling back up
 export default function LiveCgpa({ now, before, changed: edited, hint = 'cgpa.liveHint', undoLabel, onUndo }: {
   now: number | null; before: number | null; changed?: boolean; hint?: string; undoLabel?: string; onUndo?: () => void;
 }) {
@@ -14,7 +12,6 @@ export default function LiveCgpa({ now, before, changed: edited, hint = 'cgpa.li
     <div className="live" role="status" aria-live="polite">
       <div className="live-now">
         <span>{t('cgpa.liveNow')}</span>
-        {/* the key restarts the flash every time the number changes */}
         <b key={now ?? 'none'} className="live-number">{now !== null ? num(now, 2) : t('cgpa.none')}</b>
       </div>
       {changed ? (

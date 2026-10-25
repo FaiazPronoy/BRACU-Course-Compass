@@ -17,26 +17,21 @@ describe('splitting the credits left into courses', () => {
 });
 
 describe('planning a target', () => {
-  // 30 courses done at 3.50 average: 15 A and 15 B
   const done = [...Array(15)].map((_, i) => a(`D${i}`, 'A')).concat([...Array(15)].map((_, i) => a(`E${i}`, 'B')));
   const sums = totals(done).sums;
 
   it('offers the smallest mix of each kind that reaches the target', () => {
-    // 90 credits at 3.50, then 54 more: 4.00 in all of them gives 3.69, so 3.65 is in reach
     const plan = planTarget(sums, 54, 3.65);
     expect(plan.reachable).toBe(true);
     expect(planTarget(sums, 54, 3.7).reachable).toBe(false);
     expect(plan.mixes.length).toBeGreaterThan(0);
     for (const m of plan.mixes) {
       expect(m.cgpa).toBeGreaterThanOrEqual(3.65);
-      // a mix is only offered when its lower grade alone would fall short
       if (m.lowCourses > 0) expect(withMix(sums, plan.courses, m.low, plan.courses.length, m.low)!).toBeLessThan(3.65);
       if (m.lowCourses > 0) {
-        // one fewer at the higher grade must fall short, or it was not the smallest
         expect(withMix(sums, plan.courses, m.high, m.highCourses - 1, m.low)!).toBeLessThan(3.65);
       }
     }
-    // the example from the brief: some courses at 4.00, the rest at 3.70
     const aMinus = plan.mixes.find((m) => m.high === 'A' && m.low === 'A-');
     expect(aMinus).toBeDefined();
     expect(aMinus!.highCourses + aMinus!.lowCourses).toBe(18);
@@ -51,7 +46,6 @@ describe('planning a target', () => {
     expect(plan.reachable).toBe(false);
     expect(plan.repeats).not.toBeNull();
     expect(plan.repeats!.cgpa!).toBeGreaterThanOrEqual(3.62);
-    // one repeat fewer does not get there
     const fewer = plan.repeats!.chosen.slice(0, -1);
     const courses = plan.courses.reduce((s, c) => add(s, 'A', c), t.sums);
     const without = gpaOf({ points: courses.points + fewer.reduce((p, c) => p + c.gain, 0), credits: courses.credits });
@@ -59,7 +53,6 @@ describe('planning a target', () => {
   });
 
   it('says how far it can go when even every repeat is not enough', () => {
-    // two D grades that can only come back as a B: 3.95 is out of reach
     const list = [a('Z1', 'D'), a('Z2', 'D'), a('Z3', 'A'), a('Z4', 'A')];
     const plan = planTarget(totals(list).sums, 3, 3.95, candidates(list, 'Spring 2026', 'B'));
     expect(plan.reachable).toBe(false);

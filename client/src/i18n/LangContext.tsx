@@ -10,7 +10,10 @@ type Vars = Record<string, string | number>;
 const dicts: Record<Lang, unknown> = { en, bn };
 
 const lookup = (dict: unknown, key: string): string | undefined => {
-  const v = key.split('.').reduce<any>((o, k) => (o == null ? o : o[k]), dict);
+  const v = key.split('.').reduce<unknown>(
+    (o, k) => (o != null && typeof o === 'object' ? (o as Record<string, unknown>)[k] : undefined),
+    dict,
+  );
   return typeof v === 'string' ? v : undefined;
 };
 
@@ -42,7 +45,6 @@ export function LangProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem('lang', lang);
     } catch {
-      /* private mode */
     }
   }, [lang]);
 
@@ -52,7 +54,6 @@ export function LangProvider({ children }: { children: ReactNode }) {
     [lang]
   );
 
-  // t('dash.overdue', { n: 2 }); a numeric n also picks the `_one` form when there is one
   const t = useCallback(
     (key: string, vars?: Vars) => {
       let text: string | undefined;
@@ -67,7 +68,7 @@ export function LangProvider({ children }: { children: ReactNode }) {
     [lang, num]
   );
 
-  const date = useCallback((d: string | Date, format = 'D MMM YYYY') => dayjs(d).format(format), [lang]); // eslint-disable-line react-hooks/exhaustive-deps
+  const date = useCallback((d: string | Date, format = 'D MMM YYYY') => dayjs(d).locale(lang).format(format), [lang]);
 
   const ago = useCallback(
     (d: string | Date) => {
@@ -84,11 +85,9 @@ export function LangProvider({ children }: { children: ReactNode }) {
     [t, date]
   );
 
-  // the API answers in English; show its message in Bangla when there is a
-  // translation, or a general one when there is not
   const errorText = useCallback(
     (err: unknown, fallbackKey = 'common.wentWrong') => {
-      const said = (err as any)?.response?.data?.message as string | undefined;
+      const said = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       if (lang === 'en') return said || t(fallbackKey);
       return (said && bn.server[said]) || t(fallbackKey);
     },

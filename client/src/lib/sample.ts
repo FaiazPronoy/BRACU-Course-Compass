@@ -1,9 +1,6 @@
 import type { Attempt, Grade } from './engine/grades';
 import { newId } from './engine/gradesheet';
 
-// A made-up CSE student, so anyone can try every page with one click. It has
-// the things worth showing: a rough second year, an F that was retaken, a
-// course already repeated, and recent grades still inside the repeat window.
 const rows: [string, string, number, Grade, string][] = [
   ['CSE110', 'Programming Language I', 3, 'B', 'Summer 2023'],
   ['ENG101', 'Fundamentals of English', 3, 'B+', 'Summer 2023'],

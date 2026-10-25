@@ -17,8 +17,6 @@ function useWidth() {
   return [ref, width] as const;
 }
 
-// CGPA as a line over each semester's GPA as a bar, with the 2.00 probation
-// line and the distinction lines, and the biggest rise and fall marked
 export default function CgpaChart({ rows }: { rows: TermRow[] }) {
   const { t, num } = useLang();
   const [box, width] = useWidth();

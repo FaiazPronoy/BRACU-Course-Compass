@@ -26,7 +26,6 @@ export default function CourseCard({ course, onSaved }: { course: Course; onSave
   };
 
   return (
-    // the whole card is clickable through the title link; the save button sits above it
     <article className="card pad course-card" style={{ display: 'flex', flexDirection: 'column', gap: 12, height: '100%' }}>
       <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'nowrap' }}>
         <span className="code">{course.code}</span>

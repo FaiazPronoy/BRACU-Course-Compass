@@ -1,7 +1,3 @@
-// the shapes the API sends back
-
-
-
 export interface User {
   _id: string;
   name: string;
@@ -42,9 +38,7 @@ export interface Course extends CourseRef {
   credits: number;
   description: string;
   prerequisites: string[];
-  // soft prerequisites: worth doing first, not required
   recommended: string[];
-  // where a program's own curriculum asks for something else
   programPrerequisites: { program: string; codes: string[] }[];
   playlists: Link[];
   materials: Link[];
@@ -151,7 +145,6 @@ export interface Notification {
   createdAt: string;
 }
 
-// one attempt at a course, as a line on the grade sheet
 export interface GradeRecord {
   _id?: string;
   code: string;

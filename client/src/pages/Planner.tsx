@@ -8,6 +8,7 @@ import { useLang } from '../i18n/LangContext';
 import api from '../lib/api';
 import { currentSemester, TERMS } from '../lib/grades';
 import type { CourseRef, Plan } from '../lib/types';
+import { useLatest } from '../lib/useLatest';
 
 function useCourses() {
   const [courses, setCourses] = useState<(CourseRef & { credits: number })[]>([]);
@@ -35,9 +36,10 @@ function SemesterPlan({ plan, setPlan, courses }: { plan: Plan; setPlan: (p: Pla
     }
   };
 
-  // "Add to planner" on a course page lands here with ?add=CSE221, and the
-  // course goes into the first planned semester (created if there is none)
+  const latest = useLatest({ plan, call, setParams, t, errorText });
+
   useEffect(() => {
+    const { plan, call, setParams, t, errorText } = latest.current;
     const code = pending.current;
     if (!code) return;
     pending.current = null;
@@ -56,7 +58,7 @@ function SemesterPlan({ plan, setPlan, courses }: { plan: Plan; setPlan: (p: Pla
       }
       call(() => api.post(`/planner/semesters/${first._id}/courses`, { course: code }), `${code} → ${first.name}`);
     })();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [latest]);
 
   const addSemester = (e: FormEvent) => {
     e.preventDefault();
@@ -140,7 +142,6 @@ export default function Planner() {
   }, []);
   useEffect(load, [load]);
 
-  // grades used to be a tab here; old links go to the CGPA page now
   if (params.get('tab') === 'grades') return <Navigate to="/cgpa" replace />;
   if (!plan) return <div className="page"><Loading rows={3} /></div>;
   const s = plan.summary;

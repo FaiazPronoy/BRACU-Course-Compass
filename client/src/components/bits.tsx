@@ -76,7 +76,6 @@ export function Stars({ value, label }: { value: number; label?: string }) {
   );
 }
 
-// five little bars; red when high, since high difficulty is a warning
 export function Meter({ value, label, hot = false }: { value: number; label: string; hot?: boolean }) {
   const { num } = useLang();
   const on = Math.round(value);
@@ -153,7 +152,6 @@ export function PasswordField({ id, label, value, onChange, autoComplete = 'curr
   );
 }
 
-// a delete that asks first
 export function Confirm({ title, onConfirm, children }: { title: string; onConfirm: () => void; children: ReactNode }) {
   const { t } = useLang();
   return (
@@ -163,7 +161,6 @@ export function Confirm({ title, onConfirm, children }: { title: string; onConfi
   );
 }
 
-// pages that need an account send visitors to sign in and back again after
 export function RequireAuth({ children, admin = false }: { children: ReactNode; admin?: boolean }) {
   const { token, user } = useAuth();
   const location = useLocation();

@@ -14,7 +14,6 @@ export default function Watch() {
   const { token } = useAuth();
   const [params] = useSearchParams();
   const code = (params.get('course') || '').toUpperCase();
-  // only a playlist id: letters, digits, - and _; anything else is refused
   const list = /^[\w-]{10,64}$/.test(params.get('list') || '') ? params.get('list')! : '';
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [notes, setNotes] = useState<Note[] | null>(null);

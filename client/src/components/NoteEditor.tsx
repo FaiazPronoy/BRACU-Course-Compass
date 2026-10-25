@@ -1,17 +1,16 @@
 import { CopyOutlined, DeleteOutlined, PrinterOutlined } from '@ant-design/icons';
 import { useEffect, useRef, useState } from 'react';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 import { toast } from 'sonner';
 import { useLang } from '../i18n/LangContext';
 import api from '../lib/api';
 import type { Note } from '../lib/types';
 import { Confirm } from './bits';
+import { useLatest } from '../lib/useLatest';
 
 const toolbar = [[{ header: [2, 3, false] }], ['bold', 'italic', 'underline'], [{ list: 'ordered' }, { list: 'bullet' }], ['code-block', 'link'], ['clean']];
 
-// Saves on its own a moment after you stop typing, so nothing is lost when
-// you close the tab mid-lecture.
 export default function NoteEditor({ note, onSaved, onDeleted, compact = false }: {
   note: Note;
   onSaved?: (n: Note) => void;
@@ -24,14 +23,16 @@ export default function NoteEditor({ note, onSaved, onDeleted, compact = false }
   const [state, setState] = useState<'saved' | 'dirty' | 'saving'>('saved');
   const [savedAt, setSavedAt] = useState(note.updatedAt);
   const first = useRef(true);
+  const latest = useLatest({ note, t, errorText, onSaved });
 
   useEffect(() => {
+    const { note } = latest.current;
     setTitle(note.title);
     setContent(note.content);
     setSavedAt(note.updatedAt);
     setState('saved');
     first.current = true;
-  }, [note._id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [note._id, latest]);
 
   useEffect(() => {
     if (first.current) {
@@ -40,6 +41,7 @@ export default function NoteEditor({ note, onSaved, onDeleted, compact = false }
     }
     setState('dirty');
     const id = setTimeout(async () => {
+      const { note, t, errorText, onSaved } = latest.current;
       setState('saving');
       try {
         const { data } = await api.put(`/notes/${note._id}`, { title: title.trim() || t('notes.untitled'), content });
@@ -52,9 +54,8 @@ export default function NoteEditor({ note, onSaved, onDeleted, compact = false }
       }
     }, 900);
     return () => clearTimeout(id);
-  }, [title, content]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [title, content, latest]);
 
-  // warn before leaving with something unsaved
   useEffect(() => {
     const warn = (e: BeforeUnloadEvent) => {
       if (state !== 'saved') e.preventDefault();
@@ -63,10 +64,19 @@ export default function NoteEditor({ note, onSaved, onDeleted, compact = false }
     return () => window.removeEventListener('beforeunload', warn);
   }, [state]);
 
-  const plainText = () => {
-    const div = document.createElement('div');
-    div.innerHTML = content;
-    return div.innerText;
+  const parsed = () => new DOMParser().parseFromString(content, 'text/html').body;
+
+  const plainText = () => parsed().innerText;
+
+  const safeHtml = () => {
+    const body = parsed();
+    body.querySelectorAll('script, iframe, object, embed, link, meta, style').forEach((el) => el.remove());
+    body.querySelectorAll('*').forEach((el) => {
+      for (const { name, value } of [...el.attributes]) {
+        if (name.startsWith('on') || /^\s*javascript:/i.test(value)) el.removeAttribute(name);
+      }
+    });
+    return body.innerHTML;
   };
 
   const copy = async () => {
@@ -74,8 +84,6 @@ export default function NoteEditor({ note, onSaved, onDeleted, compact = false }
     toast.success(t('notes.copied'));
   };
 
-  // the browser's own print dialog handles Bangla text and "Save as PDF"
-  // properly, which a canvas screenshot into jsPDF did not
   const print = () => {
     const w = window.open('', '_blank', 'width=800,height=900');
     if (!w) return;
@@ -83,7 +91,7 @@ export default function NoteEditor({ note, onSaved, onDeleted, compact = false }
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;700&family=Anek+Bangla:wght@400;700&display=swap">
       <style>body{font-family:'Atkinson Hyperlegible Next','Anek Bangla',sans-serif;max-width:720px;margin:40px auto;line-height:1.6;color:#17122e}
       h1{font-size:26px;border-bottom:3px solid #c4f04a;padding-bottom:8px}pre{background:#f4ecff;padding:10px;border-radius:8px}</style></head>
-      <body><h1>${title.replace(/</g, '&lt;')}</h1>${content}</body></html>`);
+      <body><h1>${title.replace(/</g, '&lt;')}</h1>${safeHtml()}</body></html>`);
     w.document.close();
     setTimeout(() => w.print(), 600);
   };

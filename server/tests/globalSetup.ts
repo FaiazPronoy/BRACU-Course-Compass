@@ -1,7 +1,6 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { spawn, ChildProcess } from 'child_process';
 
-// vitest runs with the server directory as the working directory
 const serverDir = process.cwd();
 
 let mongo: MongoMemoryServer;
@@ -14,7 +13,6 @@ async function waitForServer(url: string, timeoutMs = 40000) {
       const res = await fetch(url);
       if (res.ok) return;
     } catch {
-      // not listening yet
     }
     await new Promise((r) => setTimeout(r, 300));
   }
@@ -29,7 +27,6 @@ export async function setup({ provide }: any) {
     }
   } catch (err: any) {
     if (err.message?.includes('already in use')) throw err;
-    // nothing listening, which is what we want
   }
 
   mongo = await MongoMemoryServer.create();
@@ -56,6 +53,7 @@ export async function setup({ provide }: any) {
       },
       stdio: 'inherit',
       shell: process.platform === 'win32',
+      detached: process.platform !== 'win32',
     }
   );
 
@@ -63,8 +61,6 @@ export async function setup({ provide }: any) {
 }
 
 export async function teardown() {
-  // ts-node-dev spawns a child of its own, so killing the wrapper leaves the
-  // actual server holding the port and the next run fails to start
   if (server?.pid) {
     if (process.platform === 'win32') {
       spawn('taskkill', ['/pid', String(server.pid), '/T', '/F'], { stdio: 'ignore' });

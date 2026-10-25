@@ -13,13 +13,10 @@ const startDark = () => {
     const saved = localStorage.getItem('theme');
     if (saved) return saved === 'dark';
   } catch {
-    /* private mode */
   }
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
 };
 
-// Ant Design paints its own blue on every button, picker and modal unless it
-// is told otherwise. These are the same colours as the variables in index.css.
 const tokens = (dark: boolean) => ({
   algorithm: dark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
   token: {
@@ -34,7 +31,6 @@ const tokens = (dark: boolean) => ({
     colorTextBase: dark ? '#F2EBFB' : '#1D0F33',
     colorBorder: dark ? '#4A3570' : '#CFB8EF',
     colorBorderSecondary: dark ? '#33254F' : '#E6D8F8',
-    // antd's own placeholder grey is far too faint to read
     colorTextPlaceholder: dark ? '#9C95BD' : '#6A6485',
     borderRadius: 12,
     controlHeight: 44,
@@ -52,7 +48,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem('theme', dark ? 'dark' : 'light');
     } catch {
-      /* private mode */
     }
   }, [dark]);
 
