@@ -92,7 +92,7 @@ Run `npm run seed` first. The sign in page also has a one-tap button for each.
 | Student | `ayesha@g.bracu.ac.bd` | `Student@123` |
 | Admin | `admin@bracu.ac.bd` | `Admin@1234` |
 
-The demo data has 31 real BRACU courses, 11 students, 36 reviews and 9 Q&A threads.
+The demo data has 67 real BRACU courses, 11 students, 36 reviews and 9 Q&A threads.
 
 ---
 
