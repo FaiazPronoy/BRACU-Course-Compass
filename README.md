@@ -11,6 +11,7 @@ a CGPA calculator and a study desk, all in one place.
 | **Course** | CSE470: Software Engineering, BRAC University |
 | **Type** | Group project |
 | **Made by** | Faiaz Abrar Zaman Pronoy and Sinthia Khandoker |
+| **Live demo** | https://bracu-course-compass.onrender.com (free hosting, so the first visit can take up to a minute to wake it) |
 | **History** | Built in Fall 2024 for the course, improved since, and published here in October 2026. |
 | **Languages** | English and Bangla, with a dark mode |
 
