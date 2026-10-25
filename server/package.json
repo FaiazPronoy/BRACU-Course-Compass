@@ -1,7 +1,10 @@
 {
   "name": "bracu-course-compass-server",
   "version": "1.0.0",
+  "private": true,
   "description": "API for BRACU Course Compass",
+  "author": "Faiaz Abrar Zaman Pronoy",
+  "license": "UNLICENSED",
   "scripts": {
     "start": "node ./dist/server.js",
     "start:dev": "ts-node-dev --respawn --transpile-only src/server.ts",
@@ -11,19 +14,16 @@
     "test": "vitest run",
     "test:watch": "vitest"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.20.0",
+    "express": "^4.22.3",
     "http-status": "^1.7.3",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.6.1",
-    "zod": "^3.22.4"
+    "mongoose": "^8.24.7",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
@@ -31,14 +31,13 @@
     "@types/cors": "^2.8.16",
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.5",
-    "@typescript-eslint/eslint-plugin": "^6.11.0",
-    "@typescript-eslint/parser": "^6.11.0",
-    "eslint": "^8.53.0",
-    "eslint-config-prettier": "^9.0.0",
-    "mongodb-memory-server": "^10.4.3",
-    "prettier": "^3.1.0",
+    "mongodb-memory-server": "^11.3.0",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.2.2",
-    "vitest": "^4.1.11"
+    "vitest": "^5.0.5"
+  },
+  "overrides": {
+    "body-parser": "^1.20.9",
+    "proxy-addr": "^2.0.8"
   }
 }

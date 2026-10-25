@@ -73,8 +73,8 @@ a CGPA calculator and a study desk, all in one place.
 
 | Part | Tools |
 |---|---|
-| Frontend | React 18, TypeScript, Vite, React Router, Redux Toolkit |
-| Design | Ant Design 5, custom CSS, react-quill, dayjs |
+| Frontend | React 18, TypeScript, Vite, React Router 7, Redux Toolkit |
+| Design | Ant Design 5, custom CSS, Quill, dayjs |
 | Backend | Node.js, Express, TypeScript, Mongoose, zod |
 | Database | MongoDB |
 | Login | JWT, bcrypt, lockout after wrong passwords |
