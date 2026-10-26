@@ -1,6 +1,6 @@
 import { Server } from 'http';
 import mongoose from 'mongoose';
-import { app } from './app';
+import { app } from './app'; // Import only `app` now
 import config from './config';
 import seedSuperAdmin from './db/seedSuperAdmin';
 
@@ -14,8 +14,13 @@ const shutDown = (reason: string, err: unknown) => {
 
 async function main() {
   try {
+    // Connect to MongoDB
     await mongoose.connect(config.database_url as string);
+
+    // Seed super admin data
     await seedSuperAdmin();
+
+    // Create and listen on the server
     server = app.listen(config.port, () => {
       console.log(`App is listening on port ${config.port}`);
     });

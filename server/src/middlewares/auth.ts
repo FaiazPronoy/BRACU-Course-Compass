@@ -7,6 +7,7 @@ import catchAsync from '../utils/catchAsync';
 import User from '../modules/user/user.model';
 
 const tokenFrom = (req: Request) => {
+  // the token is sent as a Bearer header, and also set as a cookie at login
   const authHeader = req.headers.authorization;
   return authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : req.cookies?.authToken;
 };
@@ -21,6 +22,7 @@ const userFrom = async (token?: string) => {
   }
 };
 
+// Middleware for protected routes. Pass roles to restrict further, e.g. auth('admin').
 const auth = (...requiredRoles: string[]) => {
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const user = await userFrom(tokenFrom(req));
@@ -28,6 +30,8 @@ const auth = (...requiredRoles: string[]) => {
       throw new AppError(httpStatus.UNAUTHORIZED, 'Please sign in first.');
     }
 
+    // the role is read from the database rather than the token, so changing
+    // someone's role takes effect without waiting for their token to expire
     if (requiredRoles.length && !requiredRoles.includes(user.role)) {
       throw new AppError(httpStatus.FORBIDDEN, 'You do not have permission to do that.');
     }
@@ -37,6 +41,8 @@ const auth = (...requiredRoles: string[]) => {
   });
 };
 
+// for pages anyone can read, where a signed-in reader sees a little more
+// (their own vote, whether they saved a course)
 export const optionalAuth = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const user = await userFrom(tokenFrom(req));
   if (user) req.user = user;

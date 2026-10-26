@@ -6,6 +6,7 @@ import config from '../../config';
 import AppError from '../../errors/AppError';
 import User, { DEPARTMENTS, publicUser } from './user.model';
 
+// BRACU gives students @g.bracu.ac.bd and staff @bracu.ac.bd
 export const bracuEmail = z
   .string()
   .trim()
@@ -20,6 +21,8 @@ const registerSchema = z.object({
   department: z.enum(DEPARTMENTS).default('CSE'),
 });
 
+// Five wrong passwords lock that email for fifteen minutes. Kept in memory,
+// which is enough for one server; it resets when the server restarts.
 const FAILS_ALLOWED = 5;
 const LOCK_MS = 15 * 60 * 1000;
 const failures = new Map<string, { count: number; since: number }>();
@@ -74,6 +77,8 @@ export const login = async (req: Request, res: Response) => {
   }
 
   const user = await User.findOne({ email }).select('+password');
+  // the same message whether the email exists or not, so the form cannot be
+  // used to find out who has an account
   if (!user || !(await user.comparePassword(password))) {
     recordFailure(email);
     throw new AppError(httpStatus.UNAUTHORIZED, 'Wrong email or password.');

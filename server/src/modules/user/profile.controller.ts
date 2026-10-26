@@ -36,6 +36,8 @@ const withPassword = async (userId: unknown, password: unknown) => {
   return user;
 };
 
+// changing the sign-in email needs the current password, checked against the
+// account as it is now (the old code checked it against the new address)
 export const changeEmail = async (req: Request, res: Response) => {
   const email = bracuEmail.parse(req.body?.email);
   const user = await withPassword(req.user._id, req.body?.password);
@@ -74,6 +76,7 @@ export const savedCourses = async (req: Request, res: Response) => {
   res.json(courses.map((c) => ({ ...c, saved: true, stats: stats.get(String(c._id)) || emptyStats })));
 };
 
+// everything you have written, for the profile page
 export const myActivity = async (req: Request, res: Response) => {
   const [reviews, threads, answers] = await Promise.all([
     Review.find({ author: req.user._id }).sort({ createdAt: -1 }).populate('course', 'code title').lean(),
@@ -87,6 +90,7 @@ export const myActivity = async (req: Request, res: Response) => {
   });
 };
 
+// the home screen in one request: what is due, what is coming, what is new
 export const dashboard = async (req: Request, res: Response) => {
   const id = req.user._id;
   const now = new Date();
@@ -106,6 +110,7 @@ export const dashboard = async (req: Request, res: Response) => {
     Course.find({ _id: { $in: req.user.savedCourses } }, 'code title credits').sort({ code: 1 }).lean(),
   ]);
 
+  // tasks with no deadline sort to the end rather than the start
   tasks.sort((a, b) => (a.deadline ? +a.deadline : Infinity) - (b.deadline ? +b.deadline : Infinity));
 
   res.json({

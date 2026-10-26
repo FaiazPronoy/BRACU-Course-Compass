@@ -1,26 +1,33 @@
+# Dependencies
 node_modules/
 
+# Build output
 dist/
 build/
 *.tsbuildinfo
 
+# Secrets - never commit these
 .env
 .env.*
 !.env.example
 env.docx
 
+# Demo recordings and large binaries (kept locally, not in the repo)
 *.mov
 *.mp4
 
+# Editor / OS
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
 
+# Logs
 *.log
 npm-debug.log*
 *.stackdump
 
+# personal viva notes, kept locally
 *.docx
 tools/out/
 __pycache__/

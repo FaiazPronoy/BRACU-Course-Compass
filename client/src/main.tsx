@@ -1,3 +1,4 @@
+/*! BRACU Course Compass. Copyright 2026 Faiaz Abrar Zaman Pronoy and Sinthia Khandoker. All rights reserved. See LICENSE. */
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';

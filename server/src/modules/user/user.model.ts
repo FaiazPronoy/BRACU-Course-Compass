@@ -21,6 +21,8 @@ const UserSchema = new Schema<IUser>(
   {
     name: { type: String, required: true, trim: true, maxlength: 60 },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    // select: false so the hash cannot leak through a handler that forgets to
+    // project it; login asks for it explicitly
     password: { type: String, default: '', select: false },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
     department: { type: String, enum: DEPARTMENTS, default: 'CSE' },
@@ -41,6 +43,7 @@ UserSchema.methods.comparePassword = function (candidatePassword: string) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
+// what the rest of the app is allowed to know about a person
 export const publicUser = (u: IUser) => ({
   _id: u._id,
   name: u.name,

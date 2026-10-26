@@ -1,3 +1,8 @@
+/*! BRACU Course Compass. Copyright 2026 Faiaz Abrar Zaman Pronoy and Sinthia Khandoker. All rights reserved. See LICENSE. */
+/* Course Compass.
+   Grape purple with a lime needle, on a bright orchid map with lime and
+   peach light behind it. Everything below reads from these variables, so
+   dark mode is the second block and nothing else. */
 :root {
   --ground: #f4ecff;
   --glow-a: #e2f7b5;

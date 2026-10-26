@@ -1,3 +1,11 @@
+// Reads the grade sheet PDF from Connect, in the browser. The file never
+// leaves the device: pdf.js pulls the text out and the rows are matched up by
+// where they sit on the page.
+//
+// A course row is one text item per cell:
+//   CSE110 | PROGRAMMING LANGUAGE I | 3.00 | B+ (NT) | 3.30
+// Long titles wrap onto two lines around the row, so a row is found by its
+// course code and the title is whatever sits nearest to it.
 import { ALL_GRADES, Attempt, Grade, isLetter, timeline } from './grades';
 
 export interface TextCell {
@@ -6,6 +14,7 @@ export interface TextCell {
   y: number;
 }
 
+// the two summary lines the sheet prints under every semester
 export interface SheetTerm {
   semester: string;
   attempted: number;
@@ -18,8 +27,9 @@ export interface SheetTerm {
 
 export interface ParsedSheet {
   attempts: Attempt[];
-  program: string;
+  program: string; // the "PROGRAM: ..." line from the header, as printed
   terms: SheetTerm[];
+  // courses whose credits the sheet leaves out (an F or an I prints 0.00)
   guessed: string[];
 }
 
@@ -27,8 +37,10 @@ const CODE = /^[A-Z]{3}\d{3}$/;
 const NUMBER = /^\d+\.\d{2}$/;
 const GRADE = /^(A\+|A-|A|B\+|B-|B|C\+|C-|C|D\+|D-|D|F|P|I|W)(\s*\((NT|RP|RT)\))?$/;
 
+// the sheet prints titles in capitals; turn them back into normal titles
 const SMALL = new Set(['of', 'and', 'the', 'for', 'to', 'in', 'a', 'an', 'on', 'with']);
 const KEEP_UPPER = /^(i|ii|iii|iv|v|vi|vlsi|ai|dbms|ui|ux|ict)$/;
+// each part of a hyphenated word on its own, so LANGUAGE-II becomes Language-II
 const word = (w: string, first: boolean) =>
   KEEP_UPPER.test(w.replace(/[^a-z]/g, '')) ? w.toUpperCase() : !first && SMALL.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1);
 export const titleCase = (s: string) =>
@@ -41,6 +53,8 @@ export const titleCase = (s: string) =>
 let counter = 0;
 export const newId = () => `a${Date.now().toString(36)}${(counter++).toString(36)}`;
 
+// one page at a time, carrying the semester over: a semester often starts at
+// the bottom of one page and finishes on the next
 export function parsePages(pages: TextCell[][]): ParsedSheet {
   const attempts: Attempt[] = [];
   const terms: SheetTerm[] = [];
@@ -56,6 +70,8 @@ export function parsePages(pages: TextCell[][]): ParsedSheet {
     const pointsX = header('Grade Points')?.x ?? 490;
     const sameRow = (a: TextCell, b: TextCell) => Math.abs(a.y - b.y) < 2;
 
+    // the program sits in the header, right of "PROGRAM:" and above the table,
+    // sometimes over two lines
     const label = cells.find((c) => /^PROGRAM\s*:?/i.test(c.str));
     const tableTop = header('Course No')?.y ?? 0;
     if (!program && label) {
@@ -71,11 +87,12 @@ export function parsePages(pages: TextCell[][]): ParsedSheet {
 
     const anchors = cells.filter((c) => CODE.test(c.str) && c.x < titleX);
     const titleCells = cells.filter((c) => c.x >= titleX - 2 && c.x < creditsX - 10 && !CODE.test(c.str));
+    // "SEMESTER:" opens a semester; "SEMESTER" and "CUMULATIVE" are its two summary lines
     const marks = [
       ...cells.filter((c) => c.str === 'SEMESTER:').map((cell) => ({ cell, kind: 'semester' as const })),
       ...cells.filter((c) => c.str === 'SEMESTER' || c.str === 'CUMULATIVE').map((cell) => ({ cell, kind: 'summary' as const })),
       ...anchors.map((cell) => ({ cell, kind: 'course' as const })),
-    ].sort((a, b) => b.cell.y - a.cell.y);
+    ].sort((a, b) => b.cell.y - a.cell.y); // PDF y grows upwards, so this is top to bottom
 
     for (const { cell, kind } of marks) {
       if (kind === 'semester') {
@@ -84,6 +101,7 @@ export function parsePages(pages: TextCell[][]): ParsedSheet {
         continue;
       }
       if (kind === 'summary') {
+        // attempted, earned, then GPA or CGPA, left to right
         const nums = cells.filter((n) => sameRow(n, cell) && NUMBER.test(n.str)).sort((a, b) => a.x - b.x).map((n) => Number(n.str));
         if (nums.length < 3) continue;
         const [attempted, earned, value] = [nums[0], nums[1], nums[nums.length - 1]];
@@ -113,6 +131,11 @@ export function parsePages(pages: TextCell[][]): ParsedSheet {
   return { attempts, terms, program, guessed: fillMissingCredits(attempts, terms) };
 }
 
+// The credits column is credits *earned*, so an F or an I prints 0.00. The
+// semester's "Credits Attempted" line still counts an F, so its credits are:
+// another attempt of the same course if there is one (a retake prints its
+// credits), otherwise what is left of the semester's attempted total, shared
+// between the F rows. An I counts nowhere, but keeps credits for the what-ifs.
 function fillMissingCredits(attempts: Attempt[], terms: SheetTerm[]) {
   const guessed: string[] = [];
   const known = new Map<string, number>();
@@ -148,9 +171,12 @@ export const FIGURES: Figure[] = ['attempted', 'earned', 'gpa', 'cumAttempted', 
 export interface TermCheck {
   semester: string;
   ok: boolean;
-  figures: Record<Figure, [number, number]>;
+  figures: Record<Figure, [number, number]>; // [ours, sheet]
 }
 
+// Works every semester out again from the course rows and holds it up against
+// the two lines the sheet prints under it. Any difference means a row was
+// misread, and the page says so instead of quietly showing a wrong CGPA.
 export function checkSheet(sheet: ParsedSheet): TermCheck[] {
   const rows = new Map(timeline(sheet.attempts).map((r) => [r.semester, r]));
   return sheet.terms.map((term) => {
@@ -168,6 +194,7 @@ export function checkSheet(sheet: ParsedSheet): TermCheck[] {
 }
 
 export async function readGradeSheet(file: File): Promise<ParsedSheet> {
+  // pdf.js is large, so it only loads when someone picks a file
   const [pdfjs, worker] = await Promise.all([import('pdfjs-dist'), import('pdfjs-dist/build/pdf.worker.min.mjs?url')]);
   pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
   const doc = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;

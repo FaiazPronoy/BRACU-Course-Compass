@@ -11,5 +11,7 @@ export default {
   jwt_access_expires_in: process.env.JWT_ACCESS_EXPIRES_IN || '7d',
   super_admin_email: process.env.SUPER_ADMIN_EMAIL,
   super_admin_password: process.env.SUPER_ADMIN_PASSWORD,
+  // where the site runs during development; in production the API serves the
+  // built client itself, so no cross-origin request is ever made
   client_urls: (process.env.CLIENT_URL || 'http://localhost:5173').split(',').map((s) => s.trim()),
 };
