@@ -62,8 +62,10 @@ function useProgram() {
     setCode(c);
     setCredits(n);
     try {
-      c ? localStorage.setItem('cc-program', c) : localStorage.removeItem('cc-program');
-      n ? localStorage.setItem('cc-program-credits', String(n)) : localStorage.removeItem('cc-program-credits');
+      if (c) localStorage.setItem('cc-program', c);
+      else localStorage.removeItem('cc-program');
+      if (n) localStorage.setItem('cc-program-credits', String(n));
+      else localStorage.removeItem('cc-program-credits');
     } catch {
     }
   };
