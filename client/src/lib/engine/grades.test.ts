@@ -166,3 +166,20 @@ describe('targets and new courses', () => {
     expect(semesterIndex('Nonsense')).toBe(-1);
   });
 });
+
+describe('more repeat and credit cases', () => {
+  it('a third attempt is the one that counts', () => {
+    const list = [a('MAT110', 'D', 'Fall 2023'), a('MAT110', 'C', 'Spring 2024'), a('MAT110', 'A', 'Fall 2024')];
+    expect(cgpa(list)).toBe(4);
+  });
+
+  it('counts the credits of the course once, however many times it was taken', () => {
+    const list = [a('PHY111', 'C', 'Fall 2023', 4), a('PHY111', 'B', 'Spring 2024', 4), a('ENG101', 'A', 'Spring 2024', 3)];
+    expect(totals(list).earned).toBe(7);
+  });
+
+  it('has no CGPA with nothing graded yet', () => {
+    expect(cgpa([])).toBeNull();
+    expect(cgpa([a('CSE110', 'W'), a('CSE111', 'I')])).toBeNull();
+  });
+});

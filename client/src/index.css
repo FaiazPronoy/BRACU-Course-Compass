@@ -1657,3 +1657,40 @@ html [data-sonner-toaster][data-theme='light'] {
 .top-table tbody tr:hover {
   background: var(--sunken);
 }
+
+/* standing checklist on the CGPA page */
+.checklist {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.checklist li {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 10px;
+  align-items: start;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--sunken);
+}
+.checklist .mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 0.8rem;
+}
+.checklist .yes .mark { background: var(--lime-lo); color: var(--lime-ink); }
+.checklist .no .mark { background: var(--coral-lo); color: var(--coral); }
+.checklist .wait .mark { background: var(--amber-lo); color: var(--amber); }
+.probation-note {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--coral-lo);
+  color: var(--coral);
+  font-weight: 600;
+}

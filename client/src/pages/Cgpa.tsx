@@ -105,6 +105,68 @@ function Summary({ attempts, rows, after, probation }: { attempts: Attempt[]; ro
   );
 }
 
+// a small PNG of the result, drawn on a canvas, the same as the Analyzer's
+function saveSummary(cgpa: number, lines: string[]) {
+  const c = document.createElement('canvas');
+  c.width = 1000;
+  c.height = 560;
+  const g = c.getContext('2d')!;
+  g.fillStyle = '#FFFFFF';
+  g.fillRect(0, 0, c.width, c.height);
+  g.fillStyle = '#1D0F33';
+  g.font = '600 34px "Hanken Grotesk", sans-serif';
+  g.fillText('CGPA', 64, 96);
+  g.font = '800 150px "Hanken Grotesk", sans-serif';
+  g.fillStyle = cgpa >= 3 ? '#0A7A52' : cgpa >= 2 ? '#8A5A00' : '#AD2A25';
+  g.fillText(cgpa.toFixed(2), 56, 260);
+  g.fillStyle = '#1D0F33';
+  g.font = '500 32px "Atkinson Hyperlegible Next", sans-serif';
+  lines.filter(Boolean).forEach((line, k) => g.fillText(line, 64, 350 + k * 52));
+  g.fillStyle = '#574670';
+  g.font = '400 24px "Atkinson Hyperlegible Next", sans-serif';
+  g.fillText('BRACU Course Compass', 64, 520);
+  const a = document.createElement('a');
+  a.href = c.toDataURL('image/png');
+  a.download = `cgpa-${cgpa.toFixed(2)}.png`;
+  a.click();
+}
+
+function Standing({ rows, probation, earned, cgpa }: { rows: TermRow[]; probation?: number; earned: number; cgpa: number | null }) {
+  const { t, num } = useLang();
+  const standing = standingOf(rows, probation);
+  if (cgpa == null) return null;
+  const line = standing?.threshold ?? 2;
+  const lists = rows.filter((r) => r.list).length;
+  const vc = rows.filter((r) => r.list === 'vc').length;
+  const item = (ok: boolean | null, title: string, text: string) => (
+    <li className={ok ? 'yes' : ok === false ? 'no' : 'wait'}>
+      <span className="mark" aria-hidden="true">{ok ? '✓' : ok === false ? '!' : '·'}</span>
+      <span><b>{title}</b><br /><span className="muted small">{text}</span></span>
+    </li>
+  );
+  return (
+    <section className="card pad" aria-labelledby="side-standing">
+      <div className="row" style={{ justifyContent: 'space-between' }}>
+        <h2 id="side-standing" style={{ fontSize: '1.02rem' }}>{t('cgpa.standingTitle')}</h2>
+        <button type="button" className="btn btn-quiet btn-sm no-print"
+          onClick={() => saveSummary(cgpa, [t('cgpa.imgCredits', { n: earned }), standing ? t(`cgpa.standing_${standing.status}`) : '', t('cgpa.imgLists', { dean: lists, vc })])}>
+          {t('cgpa.saveImage')}</button>
+      </div>
+      {standing && standing.status !== 'good' && (
+        <p className="probation-note" role="alert" style={{ marginTop: 10 }}>
+          {t(standing.status === 'review' ? 'cgpa.reviewNote' : 'cgpa.probationNote',
+            { line: num(line, 2), n: standing.semestersBelow, left: standing.allowed - standing.semestersBelow })}
+        </p>
+      )}
+      <ul className="checklist">
+        {item(cgpa >= line, t('cgpa.lineCheck', { line: num(line, 2) }), t('cgpa.lineCheckText', { cgpa: num(cgpa, 2) }))}
+        {item(lists > 0 ? true : null, t('cgpa.checkDean'), lists ? t('cgpa.madeIt', { n: lists }) : t('cgpa.notYet'))}
+        {item(vc > 0 ? true : null, t('cgpa.checkVc'), vc ? t('cgpa.madeIt', { n: vc }) : t('cgpa.notYet'))}
+      </ul>
+    </section>
+  );
+}
+
 function SidePanel({ attempts, rows, program }: { attempts: Attempt[]; rows: TermRow[]; program: ReturnType<typeof useProgram> }) {
   const { t, num } = useLang();
   const s = totals(attempts);
@@ -115,6 +177,7 @@ function SidePanel({ attempts, rows, program }: { attempts: Attempt[]; rows: Ter
   const left = program.needed ? Math.max(0, program.needed - s.earned) : null;
   return (
     <aside className="stack cgpa-side" style={{ '--gap': '14px' } as React.CSSProperties} aria-label={t('cgpa.sideLabel')}>
+      <Standing rows={rows} probation={program.program?.probation} earned={s.earned} cgpa={s.cgpa} />
       <section className="card pad" aria-labelledby="side-lists">
         <h2 id="side-lists" style={{ fontSize: '1.02rem' }}>{t('cgpa.lists')}</h2>
         <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 10 }}>
