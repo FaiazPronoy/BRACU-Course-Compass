@@ -3,7 +3,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useLang } from '../i18n/LangContext';
 import api from '../lib/api';
-import { GRADES, recentSemesters } from '../lib/grades';
+import { GRADES, recentSemesters, withPoints } from '../lib/grades';
 import type { Review } from '../lib/types';
 
 const blank = { faculty: '', semester: recentSemesters()[1], rating: 0, difficulty: 0, workload: 0, grade: '', body: '', tips: '' };
@@ -11,7 +11,7 @@ const blank = { faculty: '', semester: recentSemesters()[1], rating: 0, difficul
 export default function ReviewForm({ open, code, editing, onClose, onDone }: {
   open: boolean; code: string; editing: Review | null; onClose: () => void; onDone: () => void;
 }) {
-  const { t, errorText } = useLang();
+  const { t, num, errorText } = useLang();
   const [form, setForm] = useState(blank);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -76,7 +76,7 @@ export default function ReviewForm({ open, code, editing, onClose, onDone }: {
             <label htmlFor="rv-grade" className="label">{t('review.formGrade')}</label>
             <select id="rv-grade" className="field" value={form.grade} onChange={(e) => set('grade')(e.target.value)}>
               <option value="">{t('review.formGradeNone')}</option>
-              {GRADES.map((g) => <option key={g}>{g}</option>)}
+              {GRADES.map((g) => <option key={g} value={g}>{withPoints(g, num)}</option>)}
             </select>
           </div>
         </div>

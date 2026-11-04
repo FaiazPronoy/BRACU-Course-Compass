@@ -19,7 +19,7 @@ import {
 import { checkSheet, FIGURES, ParsedSheet, readGradeSheet } from '../lib/engine/gradesheet';
 import { detectProgram, programByCode, PROGRAMS } from '../lib/engine/programs';
 import { gradeCounts, planTarget } from '../lib/engine/targets';
-import { recentSemesters } from '../lib/grades';
+import { recentSemesters, withPoints } from '../lib/grades';
 import { sampleTranscript } from '../lib/sample';
 import type { CourseRef, GradeRecord } from '../lib/types';
 import { useTranscript } from '../lib/useTranscript';
@@ -202,7 +202,7 @@ function SidePanel({ attempts, rows, program }: { attempts: Attempt[]; rows: Ter
       <section className="card pad" aria-labelledby="side-grades">
         <h2 id="side-grades" style={{ fontSize: '1.02rem' }}>{t('cgpa.gradeCount')}</h2>
         <ul className="grade-counts">
-          {counts.map(([g, n]) => <li key={g}><span style={{ fontFamily: 'var(--mono)' }}>{g}</span><b>{num(n)}</b></li>)}
+          {counts.map(([g, n]) => <li key={g}><span style={{ fontFamily: 'var(--mono)' }}>{withPoints(g, num)}</span><b>{num(n)}</b></li>)}
         </ul>
       </section>
       <section className="card pad" aria-labelledby="side-program">
@@ -239,7 +239,7 @@ function Outlook({ sums, exact, left, cgpa }: { sums: Sums; exact: number | null
         <label className="row" style={{ gap: 6 }}>
           {t('cgpa.out_allAt')}
           <select className="field" style={{ width: 'auto', minHeight: 30, padding: '2px 24px 2px 8px', fontFamily: 'var(--mono)' }} value={custom} onChange={(e) => setCustom(e.target.value as LetterGrade)}>
-            {LETTER_GRADES.filter((g) => g !== 'F').map((g) => <option key={g}>{g}</option>)}
+            {LETTER_GRADES.filter((g) => g !== 'F').map((g) => <option key={g} value={g}>{withPoints(g, num)}</option>)}
           </select>
         </label>
       ),
@@ -456,7 +456,7 @@ function OverviewTab({ rows, attempts, probation, onUpload, onSample, empty }: {
 function CourseLine({ r, on, onGrade, onSave, onRemove }: {
   r: GradeRecord; on: boolean; onGrade: (g: string) => void; onSave: (next: Partial<GradeRecord>) => Promise<boolean>; onRemove: () => void;
 }) {
-  const { t } = useLang();
+  const { t, num } = useLang();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState({ code: r.code, title: r.title || '', credits: r.credits });
   if (editing) {
@@ -483,7 +483,7 @@ function CourseLine({ r, on, onGrade, onSave, onRemove }: {
       </span>
       <select className="field" aria-label={`${t('cgpa.grade')}: ${r.code} ${r.semester}`} style={{ width: 'auto', minHeight: 38, fontFamily: 'var(--mono)' }}
         value={r.grade} onChange={(e) => onGrade(e.target.value)}>
-        {ALL_GRADES.map((g) => <option key={g}>{g}</option>)}
+        {ALL_GRADES.map((g) => <option key={g} value={g}>{withPoints(g, num)}</option>)}
       </select>
       <button type="button" className="icon-btn" aria-label={`${t('common.edit')}: ${r.code} ${r.semester}`} onClick={() => setEditing(true)}><EditOutlined /></button>
       <button type="button" className="icon-btn" aria-label={`${t('common.remove')}: ${r.code} ${r.semester}`} onClick={onRemove}><CloseOutlined /></button>
@@ -569,7 +569,7 @@ function TranscriptTab({ records, attempts, catalogue, add, remove, replaceAll, 
           <div>
             <label htmlFor="ad-grade" className="label">{t('cgpa.grade')}</label>
             <select id="ad-grade" className="field" value={draft.grade} onChange={(e) => setDraft({ ...draft, grade: e.target.value })}>
-              {ALL_GRADES.map((g) => <option key={g}>{g}</option>)}
+              {ALL_GRADES.map((g) => <option key={g} value={g}>{withPoints(g, num)}</option>)}
             </select>
           </div>
           <div>
@@ -664,7 +664,7 @@ function WhatIfTab({ attempts, rows, setRows }: { attempts: Attempt[]; rows: Row
                 ) : <span className="code">{r.code}</span>}
                 <span style={{ flex: 1, minWidth: 0, textDecoration: r.dropped ? 'line-through' : undefined }}>
                   <span style={{ display: 'block' }}>{r.title}</span>
-                  {was && was !== r.grade && <span className="small muted">{t('cgpa.was', { grade: was })}</span>}
+                  {was && was !== r.grade && <span className="small muted">{t('cgpa.was', { grade: withPoints(was, num) })}</span>}
                 </span>
                 {r.added ? (
                   <select className="field" aria-label={`${t('cgpa.credits')}: ${r.code || r.title}`} style={{ width: 'auto', minHeight: 38 }} value={r.credits} onChange={(e) => set(r.key, { credits: Number(e.target.value) })}>
@@ -673,7 +673,7 @@ function WhatIfTab({ attempts, rows, setRows }: { attempts: Attempt[]; rows: Row
                 ) : <span className="small muted only-wide">{t('common.credits', { n: r.credits })}</span>}
                 <select className="field" aria-label={`${t('cgpa.grade')}: ${r.code || r.title}`} style={{ width: 'auto', minHeight: 38, fontFamily: 'var(--mono)' }} value={r.grade}
                   onChange={(e) => set(r.key, { grade: e.target.value })} disabled={r.dropped}>
-                  {ALL_GRADES.map((g) => <option key={g}>{g}</option>)}
+                  {ALL_GRADES.map((g) => <option key={g} value={g}>{withPoints(g, num)}</option>)}
                 </select>
                 <button type="button" className="icon-btn" aria-pressed={r.dropped}
                   aria-label={`${r.added ? t('common.remove') : r.dropped ? t('cgpa.putBack') : t('cgpa.drop')}: ${r.code || r.title}`}
@@ -702,7 +702,7 @@ function statusOf(c: Candidate, next: string, t: (k: string, v?: Record<string, 
 
 function RepeatTab({ attempts, next, setNext, latest }: { attempts: Attempt[]; next: string; setNext: (s: string) => void; latest: string }) {
   const { t, num, lang } = useLang();
-  const said = (g: LetterGrade) => (lang === 'bn' ? g : g.startsWith('A') ? `an ${g}` : `a ${g}`);
+  const said = (g: LetterGrade) => (lang === 'bn' ? withPoints(g, num) : `${g.startsWith('A') ? 'an' : 'a'} ${withPoints(g, num)}`);
   const [scope, setScope] = useState<'window' | 'all'>('window');
   const [count, setCount] = useState(3);
   const [hope, setHope] = useState<LetterGrade>('A');
@@ -744,7 +744,7 @@ function RepeatTab({ attempts, next, setNext, latest }: { attempts: Attempt[]; n
           <div>
             <label className="label" htmlFor="rp-hope">{t('cgpa.ifIGet')}</label>
             <select id="rp-hope" className="field" style={{ fontFamily: 'var(--mono)' }} value={hope} onChange={(e) => setHope(e.target.value as LetterGrade)}>
-              {HOPES.map((g) => <option key={g} value={g}>{g} ({num(GRADE_POINTS[g], 1)})</option>)}
+              {HOPES.map((g) => <option key={g} value={g}>{withPoints(g, num)}</option>)}
             </select>
           </div>
           <div>
@@ -766,7 +766,7 @@ function RepeatTab({ attempts, next, setNext, latest }: { attempts: Attempt[]; n
         ))}
       </div>
 
-      {pool.length === 0 ? <Empty title={t('cgpa.noRetakeTitle')} text={t(scope === 'window' ? 'cgpa.noneInWindow' : 'cgpa.noRetakeText', { grade: hope })} /> : (
+      {pool.length === 0 ? <Empty title={t('cgpa.noRetakeTitle')} text={t(scope === 'window' ? 'cgpa.noneInWindow' : 'cgpa.noRetakeText', { grade: withPoints(hope, num) })} /> : (
         <section className="card pad" aria-labelledby="best-plan" style={{ borderColor: 'var(--violet)' }}>
           <p className="small muted">{t('cgpa.bestPlan', { n: plan.chosen.length, grade: said(hope) })}</p>
           <p style={{ marginTop: 4 }}>
@@ -781,7 +781,7 @@ function RepeatTab({ attempts, next, setNext, latest }: { attempts: Attempt[]; n
               return (
                 <li key={c.attempt.id} className="link-row">
                   <span className="code">{c.attempt.code}</span>
-                  <span style={{ flex: 1, minWidth: 0 }}>{c.attempt.title || c.attempt.code} <span className="small muted">{c.attempt.grade} {'→'} {hope}, {t('cgpa.firstTaken', { sem: c.firstSemester })}</span></span>
+                  <span style={{ flex: 1, minWidth: 0 }}>{c.attempt.title || c.attempt.code} <span className="small muted">{withPoints(c.attempt.grade, num)} {'→'} {withPoints(hope, num)}, {t('cgpa.firstTaken', { sem: c.firstSemester })}</span></span>
                   <span className={`tag ${st.tone}`}>{st.text}</span>
                 </li>
               );
@@ -818,13 +818,13 @@ function RepeatTab({ attempts, next, setNext, latest }: { attempts: Attempt[]; n
                     onChange={() => setPicked((p) => ({ ...p, [c.attempt.id]: on ? undefined : hope }))} />
                   <label htmlFor={`pk-${c.attempt.id}`} style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ display: 'block', fontWeight: 700 }}><span className="code" style={{ marginRight: 6 }}>{c.attempt.code}</span>{c.attempt.title}</span>
-                    <span className="small muted">{t('cgpa.pickLine', { grade: c.attempt.grade, sem: c.attempt.semester, credits: c.attempt.credits })} </span>
+                    <span className="small muted">{t('cgpa.pickLine', { grade: withPoints(c.attempt.grade, num), sem: c.attempt.semester, credits: c.attempt.credits })} </span>
                     <span className={`tag ${st.tone}`} style={{ whiteSpace: 'normal' }}>{st.text}</span>
                   </label>
                   {on && (
                     <select className="field" style={{ width: 'auto', minHeight: 34, fontFamily: 'var(--mono)' }} aria-label={t('cgpa.gradeFor', { code: c.attempt.code })}
                       value={picked[c.attempt.id]} onChange={(e) => setPicked((p) => ({ ...p, [c.attempt.id]: e.target.value as LetterGrade }))}>
-                      {HOPES.map((g) => <option key={g}>{g}</option>)}
+                      {HOPES.map((g) => <option key={g} value={g}>{withPoints(g, num)}</option>)}
                     </select>
                   )}
                   <span style={{ fontFamily: 'var(--mono)', fontSize: '0.9rem' }} title={t('cgpa.aloneTitle')}>{num(alone, 2)}</span>
@@ -853,7 +853,7 @@ function TargetTab({ attempts, next, needed, onRepeat }: { attempts: Attempt[]; 
   const withPermission = pool.filter((c) => c.allowed !== 'no');
   const plan = planTarget(s.sums, left, target, byRules);
   const need = left > 0 ? (target - 0.0055) * (s.sums.credits / 100 + left) / left - s.sums.points / 1000 / left : null;
-  const g = (x: LetterGrade) => `${x} (${num(GRADE_POINTS[x], 2)})`;
+  const g = (x: LetterGrade) => withPoints(x, num);
 
   let body: React.ReactNode;
   if (s.cgpa !== null && s.cgpa >= target && (left === 0 || (need !== null && need <= 0))) {
@@ -898,7 +898,7 @@ function TargetTab({ attempts, next, needed, onRepeat }: { attempts: Attempt[]; 
               {fix.chosen.map((c) => (
                 <li key={c.attempt.id} className="link-row">
                   <span className="code">{c.attempt.code}</span>
-                  <span style={{ flex: 1 }} className="small muted">{c.attempt.grade} {'→'} A · {t(`cgpa.kind_${c.kind}`)}</span>
+                  <span style={{ flex: 1 }} className="small muted">{withPoints(c.attempt.grade, num)} {'→'} {withPoints('A', num)} · {t(`cgpa.kind_${c.kind}`)}</span>
                   {c.allowed === 'permission' && <span className="tag amber">{t('cgpa.st_permissionShort')}</span>}
                 </li>
               ))}
@@ -959,7 +959,7 @@ function NextSemester({ sums }: { sums: Sums }) {
               {[1, 1.5, 2, 3, 4].map((c) => <option key={c} value={c}>{t('common.credits', { n: c })}</option>)}
             </select>
             <select className="field" style={{ fontFamily: 'var(--mono)' }} aria-label={t('cgpa.gradeForRow', { n: i + 1 })} value={r.grade} onChange={(e) => set(r.key, { grade: e.target.value as LetterGrade })}>
-              {LETTER_GRADES.map((g) => <option key={g} value={g}>{g} ({num(GRADE_POINTS[g], 1)})</option>)}
+              {LETTER_GRADES.map((g) => <option key={g} value={g}>{withPoints(g, num)}</option>)}
             </select>
             <button type="button" className="icon-btn" aria-label={t('cgpa.removeRow', { n: i + 1 })} disabled={rows.length <= 1} onClick={() => setRows((x) => x.filter((y) => y.key !== r.key))}><CloseOutlined /></button>
           </div>
@@ -1015,8 +1015,8 @@ function Quick() {
         <div className="card pad" style={{ background: 'var(--sunken)', borderColor: 'transparent' }}>
           <h3 style={{ fontSize: '1rem' }}>{t('cgpa.qRetakeTitle')}</h3>
           <div className="row" style={{ marginTop: 8, flexWrap: 'nowrap' }}>
-            <div style={{ flex: 1 }}><label className="label" htmlFor="q-old">{t('cgpa.qOld')}</label><select id="q-old" className="field" value={old} onChange={(e) => setOld(e.target.value as LetterGrade)}>{LETTER_GRADES.map((g) => <option key={g}>{g}</option>)}</select></div>
-            <div style={{ flex: 1 }}><label className="label" htmlFor="q-new">{t('cgpa.qNew')}</label><select id="q-new" className="field" value={fresh} onChange={(e) => setFresh(e.target.value as LetterGrade)}>{LETTER_GRADES.map((g) => <option key={g}>{g}</option>)}</select></div>
+            <div style={{ flex: 1 }}><label className="label" htmlFor="q-old">{t('cgpa.qOld')}</label><select id="q-old" className="field" value={old} onChange={(e) => setOld(e.target.value as LetterGrade)}>{LETTER_GRADES.map((g) => <option key={g} value={g}>{withPoints(g, num)}</option>)}</select></div>
+            <div style={{ flex: 1 }}><label className="label" htmlFor="q-new">{t('cgpa.qNew')}</label><select id="q-new" className="field" value={fresh} onChange={(e) => setFresh(e.target.value as LetterGrade)}>{LETTER_GRADES.map((g) => <option key={g} value={g}>{withPoints(g, num)}</option>)}</select></div>
             <div style={{ flex: 1 }}><label className="label" htmlFor="q-oc">{t('cgpa.credits')}</label><input id="q-oc" className="field" type="number" min={1} max={6} value={oldCredits} onChange={(e) => setOldCredits(Number(e.target.value))} /></div>
           </div>
           <p style={{ marginTop: 8 }}>{t('cgpa.qBecomes')} <b style={{ fontFamily: 'var(--mono)', fontSize: '1.2rem' }}>{shown(afterRetake)}</b></p>

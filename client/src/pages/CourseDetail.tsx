@@ -23,7 +23,7 @@ import ReviewForm from '../components/ReviewForm';
 import ThreadRow from '../components/ThreadRow';
 import { useLang } from '../i18n/LangContext';
 import api from '../lib/api';
-import { GRADES } from '../lib/grades';
+import { GRADES, withPoints } from '../lib/grades';
 import type { CourseDetail as TCourse, Note, Review, ReviewComment, Thread } from '../lib/types';
 import { useAuth } from '../redux/store';
 
@@ -147,7 +147,7 @@ function ReviewCard({ review, onEdit, onChanged }: { review: Review; onEdit: () 
           </div>
         </div>
         <div className="row" style={{ gap: 8 }}>
-          {review.grade && <span className="tag violet">{t('review.grade', { grade: review.grade })}</span>}
+          {review.grade && <span className="tag violet">{t('review.grade', { grade: withPoints(review.grade, num) })}</span>}
           <Stars value={review.rating} />
         </div>
       </div>
@@ -197,7 +197,7 @@ function GradeBars({ grades }: { grades: Record<string, number> }) {
     <ul className="list-plain" style={{ display: 'grid', gap: 8 }}>
       {shown.map((g) => (
         <li key={g} className="row" style={{ gap: 10, border: 0, flexWrap: 'nowrap' }}>
-          <span className="code" style={{ width: 44, justifyContent: 'center' }}>{g}</span>
+          <span className="code" style={{ width: 82, justifyContent: 'center' }}>{withPoints(g, num)}</span>
           <span style={{ flex: 1, height: 12, borderRadius: 6, background: 'var(--sunken)' }} aria-hidden="true">
             <span style={{ display: 'block', height: '100%', width: `${(grades[g] / max) * 100}%`, borderRadius: 6, background: 'var(--violet)' }} />
           </span>
