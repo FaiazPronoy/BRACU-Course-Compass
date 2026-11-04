@@ -22,6 +22,38 @@ import api from '../lib/api';
 import type { CalendarEvent, Course, CourseRef, Note, Review, Todo } from '../lib/types';
 import { useAuth } from '../redux/store';
 
+function CompassArt() {
+  return (
+    <svg viewBox="0 0 320 320" role="img" aria-hidden="true" style={{ width: '100%', maxWidth: 360 }}>
+      <circle cx="160" cy="160" r="150" fill="var(--surface)" stroke="var(--line-2)" strokeWidth="2" />
+      <circle cx="160" cy="160" r="118" fill="none" stroke="var(--line)" strokeWidth="2" strokeDasharray="4 8" />
+      {Array.from({ length: 36 }, (_, i) => {
+        const a = (i * 10 * Math.PI) / 180;
+        const long = i % 9 === 0;
+        const r1 = long ? 128 : 136;
+        return (
+          <line key={i} x1={160 + Math.sin(a) * r1} y1={160 - Math.cos(a) * r1} x2={160 + Math.sin(a) * 146} y2={160 - Math.cos(a) * 146}
+            stroke={long ? 'var(--violet)' : 'var(--line-2)'} strokeWidth={long ? 4 : 2} strokeLinecap="round" />
+        );
+      })}
+      {[['N', 160, 44], ['E', 280, 166], ['S', 160, 288], ['W', 40, 166]].map(([l, x, y]) => (
+        <text key={l} x={x} y={y} textAnchor="middle" fontFamily="var(--mono)" fontWeight="700" fontSize="16" fill="var(--ink-2)">{l}</text>
+      ))}
+      <g transform="rotate(40 160 160)">
+        <path d="M160 58 L176 160 L160 262 L144 160 Z" fill="var(--ink)" />
+        <path d="M160 58 L176 160 L144 160 Z" fill="var(--lime)" stroke="var(--ink)" strokeWidth="2" />
+      </g>
+      <circle cx="160" cy="160" r="12" fill="var(--violet)" stroke="var(--surface)" strokeWidth="4" />
+      {[['CSE221', 212, 92, -8], ['MAT216', 62, 108, 6], ['CSE370', 214, 236, 5], ['PHY111', 60, 222, -5]].map(([c, x, y, r]) => (
+        <g key={c as string} transform={`rotate(${r} ${x} ${y})`}>
+          <rect x={(x as number) - 38} y={(y as number) - 14} width="76" height="28" rx="8" fill="var(--lime-lo)" stroke="var(--lime)" />
+          <text x={x} y={(y as number) + 5} textAnchor="middle" fontFamily="var(--mono)" fontWeight="700" fontSize="13" fill="var(--lime-ink)">{c}</text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
 function ReviewSnippet({ r }: { r: Review }) {
   const { t, ago } = useLang();
   const course = r.course as CourseRef;
@@ -112,7 +144,13 @@ function Landing() {
         </div>
         </div>
 
-        <aside className="card top-courses" aria-labelledby="top-title">
+        <div className="center rise home-art">
+          <CompassArt />
+        </div>
+      </section>
+
+      <section className="page" style={{ paddingTop: 0 }}>
+        <aside style={{ maxWidth: 820 }} className="card top-courses" aria-labelledby="top-title">
           <div className="top-head">
             <h2 id="top-title">{t('landing.topTitle')}</h2>
             <Link to="/courses?sort=reviews" className="small">{t('landing.recentAll')}</Link>
