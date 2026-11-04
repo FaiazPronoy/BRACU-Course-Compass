@@ -42,6 +42,7 @@ router.delete('/courses/:key', adminOnly, h(course.deleteCourse));
 router.post('/courses/:key/save', signedIn, h(profile.toggleSaved));
 
 router.get('/reviews/recent', optionalAuth, h(review.recentReviews));
+router.get('/faculty/:initials', optionalAuth, h(review.facultyPage));
 router.get('/courses/:key/reviews', optionalAuth, h(review.listReviews));
 router.post('/courses/:key/reviews', signedIn, h(review.createReview));
 router.put('/reviews/:id', signedIn, h(review.updateReview));

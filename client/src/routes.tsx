@@ -5,6 +5,7 @@ import Layout from './components/Layout';
 import Auth from './pages/Auth';
 import CourseDetail from './pages/CourseDetail';
 import Courses from './pages/Courses';
+import Faculty from './pages/Faculty';
 import Forum from './pages/Forum';
 import Home from './pages/Home';
 import NotFound from './pages/NotFound';
@@ -29,6 +30,7 @@ const router = createBrowserRouter([
       { path: '/', element: <Home /> },
       { path: '/courses', element: <Courses /> },
       { path: '/courses/:code', element: <CourseDetail /> },
+      { path: '/faculty/:initials', element: <Faculty /> },
       { path: '/watch', element: later(<Watch />) },
       { path: '/forum', element: <Forum /> },
       { path: '/forum/:id', element: <Thread /> },

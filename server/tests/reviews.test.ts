@@ -131,3 +131,22 @@ describe('comments on a review', () => {
     expect((await api('GET', `/reviews/${created.body._id}/comments`)).body).toHaveLength(0);
   });
 });
+
+describe('faculty pages', () => {
+  it('add up what students wrote about one set of initials', async () => {
+    const first = await createCourse(admin.token);
+    const second = await createCourse(admin.token);
+    await post(first.code, (await createStudent()).token, review({ faculty: 'QZX', rating: 4 }));
+    await post(second.code, (await createStudent()).token, review({ faculty: 'qzx', rating: 2 }));
+    const res = await api('GET', '/faculty/qzx');
+    expect(res.status).toBe(200);
+    expect(res.body.reviews).toBe(2);
+    expect(res.body.rating).toBe(3);
+    expect(res.body.courses.map((c: { code: string }) => c.code).sort()).toEqual([first.code, second.code].sort());
+  });
+
+  it('do not exist for initials nobody wrote', async () => {
+    expect((await api('GET', '/faculty/ZZZZ')).status).toBe(404);
+    expect((await api('GET', '/faculty/a1')).status).toBe(404);
+  });
+});

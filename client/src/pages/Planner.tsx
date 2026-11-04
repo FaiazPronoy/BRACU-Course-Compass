@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Confirm, Empty, Loading, PageHead } from '../components/bits';
+import RoutineBuilder from '../components/RoutineBuilder';
 import { useLang } from '../i18n/LangContext';
 import api from '../lib/api';
 import { currentSemester, TERMS } from '../lib/grades';
@@ -148,7 +149,7 @@ export default function Planner() {
 
   return (
     <div className="page">
-      <PageHead eyebrow={t('planner.eyebrow')} title={t('planner.title')} lead={t('planner.lead')} />
+      <PageHead title={t('planner.title')} lead={t('planner.lead')} />
 
       <div className="card summary-strip" style={{ marginBottom: 22 }}>
         {[
@@ -168,6 +169,10 @@ export default function Planner() {
       </div>
 
       <SemesterPlan plan={plan} setPlan={setPlan} courses={courses} />
+
+      <div style={{ marginTop: 28 }}>
+        <RoutineBuilder codes={plan.semesters.flatMap((sem) => sem.courses.map((c) => c.code))} />
+      </div>
     </div>
   );
 }

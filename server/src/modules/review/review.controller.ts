@@ -72,6 +72,38 @@ export const recentReviews = async (req: Request, res: Response) => {
   res.json(reviews.map((r) => shape(r, req.user?._id)));
 };
 
+// A faculty page is only what students wrote: the initials as given in the
+// reviews, the courses they were reviewed for, and the averages. No names.
+export const facultyPage = async (req: Request, res: Response) => {
+  const initials = String(req.params.initials).toUpperCase().trim();
+  if (!/^[A-Z]{2,6}$/.test(initials)) throw new AppError(httpStatus.NOT_FOUND, 'No reviews mention that faculty.');
+  const reviews = await Review.find({ faculty: initials })
+    .sort({ createdAt: -1 })
+    .populate('author', author)
+    .populate('course', 'code title')
+    .lean();
+  if (!reviews.length) throw new AppError(httpStatus.NOT_FOUND, 'No reviews mention that faculty.');
+
+  const avg = (key: 'rating' | 'difficulty' | 'workload') =>
+    Math.round((reviews.reduce((sum, r) => sum + r[key], 0) / reviews.length) * 10) / 10;
+  const courses = new Map<string, { code: string; title: string; reviews: number }>();
+  for (const r of reviews) {
+    const c = r.course as unknown as { code: string; title: string };
+    const row = courses.get(c.code) || { code: c.code, title: c.title, reviews: 0 };
+    row.reviews += 1;
+    courses.set(c.code, row);
+  }
+  res.json({
+    initials,
+    reviews: reviews.length,
+    rating: avg('rating'),
+    difficulty: avg('difficulty'),
+    workload: avg('workload'),
+    courses: [...courses.values()].sort((x, y) => y.reviews - x.reviews),
+    recent: reviews.slice(0, 10).map((r) => shape(r, req.user?._id)),
+  });
+};
+
 export const createReview = async (req: Request, res: Response) => {
   const course = await findCourse(req.params.key);
   const body = reviewSchema.parse(req.body);
