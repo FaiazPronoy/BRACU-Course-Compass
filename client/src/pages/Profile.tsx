@@ -57,7 +57,7 @@ export default function Profile() {
 
   return (
     <div className="page">
-      <PageHead eyebrow={t('profile.eyebrow')} title={t('profile.title')} />
+      <PageHead title={t('profile.title')} />
 
       <div className="split">
         <div className="stack" style={{ '--gap': '20px' } as React.CSSProperties}>

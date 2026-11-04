@@ -1054,6 +1054,9 @@ export default function Cgpa() {
   return (
     <div className="page">
       <PageHead eyebrow={t('cgpa.eyebrow')} title={t('cgpa.title')} lead={t('cgpa.lead')} />
+      <p className="small" style={{ marginTop: -8, marginBottom: 20 }}>
+        <a href="https://faiazpronoy.github.io/BRACU-CGPA-Analyzer/" target="_blank" rel="noopener">{t('cgpa.analyzerLink')}</a>
+      </p>
       {!saved && (
         <p className="card pad small" style={{ marginBottom: 18, background: 'var(--violet-lo)', borderColor: 'transparent', color: 'var(--ink)' }}>
           {t('cgpa.visitorNote')} <Link to="/login" state={{ from: '/cgpa' }} style={{ fontWeight: 700 }}>{t('cgpa.visitorSignIn')}</Link>

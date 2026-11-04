@@ -291,7 +291,7 @@ export default function Admin() {
   const tab = params.get('tab') || 'overview';
   return (
     <div className="page">
-      <PageHead eyebrow={t('admin.eyebrow')} title={t('admin.title')} />
+      <PageHead title={t('admin.title')} />
       <div className="tabs" role="tablist" style={{ marginBottom: 22 }}>
         {[['overview', 'admin.tabOverview'], ['courses', 'admin.tabCourses'], ['users', 'admin.tabUsers']].map(([k, label]) => (
           <button key={k} type="button" role="tab" className="tab" aria-selected={tab === k} onClick={() => setParams(k === 'overview' ? {} : { tab: k }, { replace: true })}>{t(label)}</button>

@@ -61,7 +61,13 @@ export default function CourseCard({ course, onSaved }: { course: Course; onSave
           </div>
         </div>
       ) : (
-        <p className="muted small">{t('common.noRating')}</p>
+        <div style={{ display: 'grid', gap: 6 }}>
+          <div className="row" style={{ gap: 8 }}>
+            <Stars value={0} label={t('courses.noReviews')} />
+            <span className="muted small">{t('courses.noReviews')}</span>
+          </div>
+          <Link to={`/courses/${course.code}#review`} className="small first-review">{t('courses.firstReview')}</Link>
+        </div>
       )}
       {course.threads > 0 && (
         <p className="small muted row" style={{ gap: 6 }}>

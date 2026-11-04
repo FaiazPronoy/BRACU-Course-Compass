@@ -477,7 +477,7 @@ export default function Study() {
 
   return (
     <div className="page">
-      <PageHead eyebrow={t('study.eyebrow')} title={t('study.title')} lead={t('study.lead')} />
+      <PageHead title={t('study.title')} lead={t('study.lead')} />
       <div className="tabs" role="tablist" style={{ marginBottom: 22 }}>
         {tabs.map(([key, label, icon]) => (
           <button key={key} type="button" role="tab" className="tab" aria-selected={tab === key} onClick={() => setParams(key === 'tasks' ? {} : { tab: key }, { replace: true })}>

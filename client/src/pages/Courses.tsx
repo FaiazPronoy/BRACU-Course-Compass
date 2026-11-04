@@ -51,7 +51,7 @@ export default function Courses() {
 
   return (
     <div className="page">
-      <PageHead eyebrow={t('courses.eyebrow')} title={t('courses.title')} lead={t('courses.lead')} />
+      <PageHead title={t('courses.title')} lead={t('courses.lead')} />
 
       <div className="card pad" style={{ display: 'grid', gap: 14, marginBottom: 22 }}>
         <div className="row" style={{ gap: 12 }}>

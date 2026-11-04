@@ -29,11 +29,12 @@ export function Brand({ compact = false }: { compact?: boolean }) {
   );
 }
 
-export function PageHead({ eyebrow, title, lead, action }: { eyebrow: string; title: string; lead?: string; action?: ReactNode }) {
+// eyebrow is optional now; most pages read better with just the title
+export function PageHead({ eyebrow, title, lead, action }: { eyebrow?: string; title: string; lead?: string; action?: ReactNode }) {
   return (
     <header className={`page-head ${action ? 'with-action' : ''}`}>
       <div>
-        <p className="eyebrow">{eyebrow}</p>
+        {eyebrow && <p className="eyebrow">{eyebrow}</p>}
         <h1>{title}</h1>
         {lead && <p>{lead}</p>}
       </div>

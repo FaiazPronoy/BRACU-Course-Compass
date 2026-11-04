@@ -368,7 +368,7 @@ export default function CourseDetail() {
                   {tips.map((r) => (
                     <li key={r._id} style={{ padding: '12px 0' }}>
                       <p className="prose">{r.tips}</p>
-                      <p className="small muted" style={{ marginTop: 4 }}>{r.author?.name} · {r.semester} · {r.faculty}</p>
+                      <p className="small muted" style={{ marginTop: 4 }}>{r.author?.name}, {r.semester}, <Link to={`/faculty/${r.faculty}`}>{r.faculty}</Link></p>
                     </li>
                   ))}
                 </ul>
@@ -388,7 +388,7 @@ export default function CourseDetail() {
                     <li key={f.faculty}>
                       <button type="button" className="link-row" style={{ width: '100%', border: 0, background: 'none', font: 'inherit', color: 'inherit', cursor: 'pointer' }}
                         onClick={() => { setFaculty(f.faculty); setTab('reviews'); }}>
-                        <span className="code" style={{ background: 'var(--violet-lo)', color: 'var(--violet-hi)', borderColor: 'transparent' }}>{f.faculty}</span>
+                        <Link to={`/faculty/${f.faculty}`} className="code" style={{ background: 'var(--violet-lo)', color: 'var(--violet-hi)', borderColor: 'transparent' }}>{f.faculty}</Link>
                         <span style={{ flex: 1 }}><Stars value={f.rating} /></span>
                         <span className="small muted">{t('common.reviews', { n: f.reviews })}</span>
                       </button>

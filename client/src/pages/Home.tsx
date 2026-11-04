@@ -16,43 +16,11 @@ import {
 import dayjs from 'dayjs';
 import { FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Avatar, CodeChip, Loading, Stars } from '../components/bits';
+import { Avatar, CodeChip, Loading, Meter, Stars } from '../components/bits';
 import { useLang } from '../i18n/LangContext';
 import api from '../lib/api';
-import type { CalendarEvent, CourseRef, Note, Review, Todo } from '../lib/types';
+import type { CalendarEvent, Course, CourseRef, Note, Review, Todo } from '../lib/types';
 import { useAuth } from '../redux/store';
-
-function CompassArt() {
-  return (
-    <svg viewBox="0 0 320 320" role="img" aria-hidden="true" style={{ width: '100%', maxWidth: 360 }}>
-      <circle cx="160" cy="160" r="150" fill="var(--surface)" stroke="var(--line-2)" strokeWidth="2" />
-      <circle cx="160" cy="160" r="118" fill="none" stroke="var(--line)" strokeWidth="2" strokeDasharray="4 8" />
-      {Array.from({ length: 36 }, (_, i) => {
-        const a = (i * 10 * Math.PI) / 180;
-        const long = i % 9 === 0;
-        const r1 = long ? 128 : 136;
-        return (
-          <line key={i} x1={160 + Math.sin(a) * r1} y1={160 - Math.cos(a) * r1} x2={160 + Math.sin(a) * 146} y2={160 - Math.cos(a) * 146}
-            stroke={long ? 'var(--violet)' : 'var(--line-2)'} strokeWidth={long ? 4 : 2} strokeLinecap="round" />
-        );
-      })}
-      {[['N', 160, 44], ['E', 280, 166], ['S', 160, 288], ['W', 40, 166]].map(([l, x, y]) => (
-        <text key={l} x={x} y={y} textAnchor="middle" fontFamily="var(--mono)" fontWeight="700" fontSize="16" fill="var(--ink-2)">{l}</text>
-      ))}
-      <g transform="rotate(40 160 160)">
-        <path d="M160 58 L176 160 L160 262 L144 160 Z" fill="var(--ink)" />
-        <path d="M160 58 L176 160 L144 160 Z" fill="var(--lime)" stroke="var(--ink)" strokeWidth="2" />
-      </g>
-      <circle cx="160" cy="160" r="12" fill="var(--violet)" stroke="var(--surface)" strokeWidth="4" />
-      {[['CSE221', 212, 92, -8], ['MAT216', 62, 108, 6], ['CSE370', 214, 236, 5], ['PHY111', 60, 222, -5]].map(([c, x, y, r]) => (
-        <g key={c as string} transform={`rotate(${r} ${x} ${y})`}>
-          <rect x={(x as number) - 38} y={(y as number) - 14} width="76" height="28" rx="8" fill="var(--lime-lo)" stroke="var(--lime)" />
-          <text x={x} y={(y as number) + 5} textAnchor="middle" fontFamily="var(--mono)" fontWeight="700" fontSize="13" fill="var(--lime-ink)">{c}</text>
-        </g>
-      ))}
-    </svg>
-  );
-}
 
 function ReviewSnippet({ r }: { r: Review }) {
   const { t, ago } = useLang();
@@ -65,10 +33,13 @@ function ReviewSnippet({ r }: { r: Review }) {
       </div>
       <p className="prose" style={{ flex: 1, display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{r.body}</p>
       <div className="row small muted">
+        <span className="tag opinion">{t('review.opinion')}</span>
+      </div>
+      <div className="row small muted">
         <Avatar name={r.author?.name} size={28} />
         <span>{r.author?.name}</span>
         <span>· {ago(r.createdAt)}</span>
-        <span className="tag" style={{ marginLeft: 'auto' }}>{r.faculty}</span>
+        <Link to={`/faculty/${r.faculty}`} className="tag" style={{ marginLeft: 'auto', position: 'relative', zIndex: 1 }}>{r.faculty}</Link>
       </div>
       <span className="sr-only">{t('review.took', { semester: r.semester, faculty: r.faculty })}</span>
     </article>
@@ -79,18 +50,25 @@ function Landing() {
   const { t, num } = useLang();
   const navigate = useNavigate();
   const [q, setQ] = useState('');
-  const [stats, setStats] = useState<Record<string, number> | null>(null);
+  const [dept, setDept] = useState('');
+  const [depts, setDepts] = useState<string[]>([]);
   const [recent, setRecent] = useState<Review[] | null>(null);
+  const [top, setTop] = useState<Course[] | null>(null);
 
   useEffect(() => {
-    api.get('/stats').then((r) => setStats(r.data)).catch(() => {});
+    api.get('/courses?sort=reviews').then((r) => setTop(r.data.slice(0, 6))).catch(() => setTop([]));
+    api.get('/departments').then((r) => setDepts(r.data)).catch(() => {});
     api.get('/reviews/recent?limit=6').then((r) => setRecent(r.data)).catch(() => setRecent([]));
   }, []);
 
   const search = (e: FormEvent) => {
     e.preventDefault();
     const code = q.trim().toUpperCase().replace(/\s+/g, '');
-    navigate(/^[A-Z]{3}\d{3}$/.test(code) ? `/courses/${code}` : `/courses?search=${encodeURIComponent(q.trim())}`);
+    if (/^[A-Z]{3}\d{3}$/.test(code)) return navigate(`/courses/${code}`);
+    const next = new URLSearchParams();
+    if (q.trim()) next.set('search', q.trim());
+    if (dept) next.set('dept', dept);
+    navigate(`/courses?${next}`);
   };
 
   const features = [
@@ -104,72 +82,69 @@ function Landing() {
 
   return (
     <>
-      <section className="page" style={{ paddingTop: 40 }}>
-        <div style={{ display: 'grid', gap: 32, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 380px), 1fr))', alignItems: 'center' }}>
-          <div className="rise">
-            <p className="eyebrow"><CompassOutlined /> {t('landing.kicker')}</p>
-            <h1 style={{ fontSize: 'clamp(2.5rem, 6.5vw, 4.4rem)', marginTop: 14, textWrap: 'balance' } as React.CSSProperties}>
-              <span style={{ display: 'block' }}>{t('landing.title1')}</span>
-              <span style={{ display: 'inline', background: 'linear-gradient(transparent 58%, var(--marker) 58%, var(--marker) 90%, transparent 90%)' }}>
-                {t('landing.title2')}
-              </span>
-            </h1>
-            <p className="muted lead" style={{ fontSize: '1.15rem', marginTop: 18, maxWidth: '54ch' }}>{t('landing.lead')}</p>
+      <section className="page home-split">
+        <div className="home-search">
+        <h1>{t('landing.title')}</h1>
+        <p className="muted home-lead">{t('landing.lead')}</p>
 
-            <form onSubmit={search} role="search" style={{ marginTop: 26, display: 'flex', gap: 8, maxWidth: 520 }}>
-              <label htmlFor="hero-search" className="sr-only">{t('landing.searchLabel')}</label>
-              <div style={{ position: 'relative', flex: 1 }}>
-                <SearchOutlined style={{ position: 'absolute', left: 15, top: 16, color: 'var(--ink-2)' }} />
-                <input id="hero-search" className="field" style={{ paddingLeft: 42, minHeight: 52 }} placeholder={t('landing.searchPh')}
-                  value={q} onChange={(e) => setQ(e.target.value)} />
-              </div>
-              <button className="btn btn-primary" style={{ minHeight: 52 }}>{t('landing.go')}</button>
-            </form>
-            <div className="row" style={{ marginTop: 14 }}>
-              <Link to="/courses" className="btn btn-quiet btn-sm" style={{ marginLeft: -12 }}>{t('landing.browse')} <ArrowRightOutlined /></Link>
-            </div>
+        <form onSubmit={search} role="search" className="search-panel">
+          <div className="search-main">
+            <label htmlFor="hero-search" className="sr-only">{t('landing.searchLabel')}</label>
+            <SearchOutlined aria-hidden="true" />
+            <input id="hero-search" className="field" placeholder={t('landing.searchPh')}
+              value={q} onChange={(e) => setQ(e.target.value)} />
           </div>
-          <div className="center rise" style={{ animationDelay: '.1s' }}>
-            <CompassArt />
-          </div>
-        </div>
-      </section>
+          <label htmlFor="hero-dept" className="sr-only">{t('courses.dept')}</label>
+          <select id="hero-dept" className="field" value={dept} onChange={(e) => setDept(e.target.value)}>
+            <option value="">{t('courses.allDepts')}</option>
+            {depts.map((d) => <option key={d} value={d}>{d}</option>)}
+          </select>
+          <button className="btn btn-primary">{t('landing.go')}</button>
+        </form>
 
-      {stats && (
-        <section aria-label={t('landing.statsLabel')} style={{ background: 'var(--night)', color: 'var(--on-night)' }}>
-          <div className="page" style={{ paddingTop: 28, paddingBottom: 28, display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', margin: '0 auto', textAlign: 'center' }}>
-            {[['courses', 'statCourses'], ['reviews', 'statReviews'], ['threads', 'statThreads'], ['students', 'statStudents']].map(([k, label]) => (
-              <div key={k}>
-                <b style={{ display: 'block', fontFamily: 'var(--display)', fontWeight: 800, fontSize: '2.4rem', color: 'var(--lime)' }}>{num(stats[k])}</b>
-                <span style={{ opacity: 0.85 }}>{t(`landing.${label}`)}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <section className="page">
-        <div className="center" style={{ maxWidth: 680, margin: '20px auto 34px' }}>
-          <p className="eyebrow">{t('landing.featEyebrow')}</p>
-          <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', marginTop: 8, textWrap: 'balance' } as React.CSSProperties}>{t('landing.featTitle')}</h2>
-        </div>
-        <div className="grid grid-3">
-          {features.map((f) => (
-            <Link key={f.h} to={f.to} className="card pad feature-card">
-              <span className="feature-icon" aria-hidden="true">{f.icon}</span>
-              <h3 style={{ marginTop: 14, fontSize: '1.25rem' }}>{t(f.h)}</h3>
-              <p className="justify" style={{ marginTop: 6, color: 'var(--ink-2)' }}>{t(f.p)}</p>
-            </Link>
+        <div className="chips quick" aria-label={t('landing.quick')}>
+          <span className="muted small">{t('landing.quick')}</span>
+          <Link className="chip" to="/courses?sort=easiest">{t('courses.sortEasiest')}</Link>
+          <Link className="chip" to="/courses?sort=reviews">{t('courses.sortReviews')}</Link>
+          {['CSE', 'MAT', 'PHY', 'ENG'].filter((d) => depts.includes(d)).map((d) => (
+            <Link key={d} className="chip" to={`/courses?dept=${d}`}>{d}</Link>
           ))}
         </div>
+        </div>
+
+        <aside className="card top-courses" aria-labelledby="top-title">
+          <div className="top-head">
+            <h2 id="top-title">{t('landing.topTitle')}</h2>
+            <Link to="/courses?sort=reviews" className="small">{t('landing.recentAll')}</Link>
+          </div>
+          {top === null ? <Loading rows={4} height={36} /> : (
+            <table className="top-table">
+              <thead>
+                <tr>
+                  <th scope="col">{t('landing.colCourse')}</th>
+                  <th scope="col">{t('courses.rating')}</th>
+                  <th scope="col">{t('courses.difficulty')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {top.map((c) => (
+                  <tr key={c._id}>
+                    <th scope="row">
+                      <Link to={`/courses/${c.code}`}><span className="code">{c.code}</span> <span className="top-name">{c.title}</span></Link>
+                    </th>
+                    <td>{c.stats.reviews ? <><b>{num(c.stats.rating, 1)}</b> <span className="muted small">({num(c.stats.reviews)})</span></> : <span className="muted small">{t('courses.noReviews')}</span>}</td>
+                    <td>{c.stats.reviews ? <Meter value={c.stats.difficulty} label={t('courses.difficulty')} hot /> : null}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </aside>
       </section>
 
       <section className="page" style={{ paddingTop: 0 }}>
         <div className="page-head with-action">
-          <div>
-            <p className="eyebrow">{t('landing.recentEyebrow')}</p>
-            <h2 style={{ fontSize: 'clamp(1.7rem, 3.5vw, 2.3rem)', marginTop: 8 }}>{t('landing.recentTitle')}</h2>
-          </div>
+          <h2 style={{ fontSize: 'clamp(1.4rem, 3vw, 1.8rem)' }}>{t('landing.recentTitle')}</h2>
           <Link to="/courses" className="btn btn-line">{t('landing.recentAll')} <ArrowRightOutlined /></Link>
         </div>
         {recent === null ? <Loading rows={2} height={160} /> : (
@@ -178,12 +153,26 @@ function Landing() {
       </section>
 
       <section className="page" style={{ paddingTop: 0 }}>
-        <div className="card violet-panel" style={{ padding: 'clamp(24px, 5vw, 48px)', display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', borderColor: 'transparent' }}>
+        <h2 style={{ fontSize: 'clamp(1.4rem, 3vw, 1.8rem)', marginBottom: 16 }}>{t('landing.featTitle')}</h2>
+        <ul className="feature-rows">
+          {features.map((f) => (
+            <li key={f.h}>
+              <Link to={f.to}>
+                <span className="feature-icon" aria-hidden="true">{f.icon}</span>
+                <span><b>{t(f.h)}</b><span className="muted">{t(f.p)}</span></span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="page" style={{ paddingTop: 0 }}>
+        <div className="card violet-panel" style={{ padding: 'clamp(24px, 5vw, 40px)', display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', borderColor: 'transparent' }}>
           <div style={{ maxWidth: 560 }}>
-            <h2 style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.3rem)', textWrap: 'balance' } as React.CSSProperties}>{t('landing.ctaTitle')}</h2>
+            <h2 style={{ fontSize: 'clamp(1.4rem, 3vw, 1.9rem)' }}>{t('landing.ctaTitle')}</h2>
             <p style={{ marginTop: 10, opacity: 0.9 }}>{t('landing.ctaText')}</p>
           </div>
-          <Link to="/login?mode=signup" className="btn btn-lime" style={{ minHeight: 52, padding: '0 26px' }}>{t('landing.ctaBtn')} <ArrowRightOutlined /></Link>
+          <Link to="/login?mode=signup" className="btn btn-lime" style={{ minHeight: 48, padding: '0 24px' }}>{t('landing.ctaBtn')} <ArrowRightOutlined /></Link>
         </div>
       </section>
     </>

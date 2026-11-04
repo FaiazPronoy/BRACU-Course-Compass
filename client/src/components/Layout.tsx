@@ -12,6 +12,7 @@ import {
   MessageOutlined,
   SearchOutlined,
   UserOutlined,
+  DownOutlined,
 } from '@ant-design/icons';
 import { Dropdown, Popover } from 'antd';
 import { useCallback, useEffect, useState } from 'react';
@@ -127,20 +128,27 @@ export default function Layout() {
   };
 
   const signedIn = !!(token && user);
+  // three things in the bar; the rest sit in "More" (and in the phone sheet)
   const links = signedIn
     ? [
-        { to: '/', label: t('nav.home'), icon: <HomeOutlined />, end: true },
         { to: '/courses', label: t('nav.courses'), icon: <BookOutlined /> },
-        { to: '/forum', label: t('nav.forum'), icon: <MessageOutlined /> },
         { to: '/planner', label: t('nav.planner'), icon: <CompassOutlined /> },
-        { to: '/cgpa', label: t('nav.cgpa'), icon: <CalculatorOutlined /> },
-        { to: '/study', label: t('nav.study'), icon: <CalendarOutlined /> },
+        { to: '/forum', label: t('nav.forum'), icon: <MessageOutlined /> },
       ]
     : [
         { to: '/courses', label: t('nav.courses'), icon: <BookOutlined /> },
         { to: '/forum', label: t('nav.forum'), icon: <MessageOutlined /> },
         { to: '/cgpa', label: t('nav.cgpa'), icon: <CalculatorOutlined /> },
       ];
+
+  const more = signedIn
+    ? [
+        { to: '/', label: t('nav.home'), icon: <HomeOutlined />, end: true },
+        { to: '/cgpa', label: t('nav.cgpa'), icon: <CalculatorOutlined /> },
+        { to: '/study', label: t('nav.study'), icon: <CalendarOutlined /> },
+      ]
+    : [];
+  const moreItems = more.map((l) => ({ key: l.to, icon: l.icon, label: l.label, onClick: () => navigate(l.to) }));
 
   const accountItems = [
     { key: 'profile', icon: <UserOutlined />, label: t('nav.profile'), onClick: () => navigate('/profile') },
@@ -149,7 +157,7 @@ export default function Layout() {
     { key: 'out', icon: <LogoutOutlined />, label: t('common.signOut'), danger: true, onClick: signOut },
   ];
 
-  const navLink = (l: (typeof links)[number]) => (
+  const navLink = (l: { to: string; label: string; icon: React.ReactNode; end?: boolean }) => (
     <NavLink key={l.to} to={l.to} end={l.end} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
       {l.icon}
       {l.label}
@@ -162,7 +170,16 @@ export default function Layout() {
       <div className="topbar">
         <nav className="nav" aria-label={t('nav.main')}>
           <Brand />
-          <div className="nav-links">{links.map(navLink)}</div>
+          <div className="nav-links">
+            {links.map(navLink)}
+            {more.length > 0 && (
+              <Dropdown menu={{ items: moreItems }} trigger={['click']}>
+                <button type="button" className="nav-link" style={{ border: 0, background: 'none', font: 'inherit', cursor: 'pointer' }}>
+                  {t('nav.more')} <DownOutlined style={{ fontSize: 11 }} />
+                </button>
+              </Dropdown>
+            )}
+          </div>
           <div className="nav-tools">
             <button type="button" className="search-trigger only-wide" onClick={() => setPalette(true)} aria-label={t('common.search')}>
               <SearchOutlined /> {t('common.searchShort')} <kbd>Ctrl K</kbd>
@@ -198,7 +215,7 @@ export default function Layout() {
 
         {sheet && (
           <div className="sheet rise">
-            {links.map(navLink)}
+            {[...more.slice(0, 1), ...links, ...more.slice(1)].map(navLink)}
             <hr className="divider" style={{ margin: '6px 0' }} />
             {signedIn ? (
               <>
@@ -238,7 +255,7 @@ export default function Layout() {
             <Link to="/cgpa" className="btn btn-quiet btn-sm">{t('nav.cgpa')}</Link>
             {signedIn && <Link to="/planner" className="btn btn-quiet btn-sm">{t('nav.planner')}</Link>}
           </nav>
-          <p className="muted small" style={{ flexBasis: '100%' }}>© {new Date().getFullYear()} {t('common.brandTop')} {t('common.brand')} · {t('footer.note')}</p>
+          <p className="muted small" style={{ flexBasis: '100%' }}>© {new Date().getFullYear()} {t('common.brandTop')} {t('common.brand')}. {t('footer.note')}</p>
           <p className="muted small" style={{ flexBasis: '100%', marginTop: 0 }}>{t('footer.madeBy')}</p>
         </div>
       </footer>

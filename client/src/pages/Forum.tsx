@@ -66,7 +66,7 @@ export default function Forum() {
 
   return (
     <div className="page">
-      <PageHead eyebrow={t('forum.eyebrow')} title={t('forum.title')} lead={t('forum.lead')}
+      <PageHead title={t('forum.title')} lead={t('forum.lead')}
         action={<button type="button" className="btn btn-primary" onClick={ask}><PlusOutlined /> {t('forum.ask')}</button>} />
 
       <div className="split">
