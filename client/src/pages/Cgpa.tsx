@@ -27,7 +27,7 @@ import { useAuth } from '../redux/store';
 
 type Tab = 'overview' | 'transcript' | 'whatif' | 'repeat' | 'target' | 'rules';
 const TABS: Tab[] = ['overview', 'transcript', 'whatif', 'repeat', 'target', 'rules'];
-const HOPES: LetterGrade[] = ['A', 'A-', 'B+', 'B'];
+const HOPES = LETTER_GRADES.filter((g) => g !== 'F');
 
 const gp = (g: string) => GRADE_POINTS[g as LetterGrade] ?? 0;
 const diff = (a: number, b: number) => Math.round((a - b) * 100) / 100;
@@ -824,7 +824,7 @@ function RepeatTab({ attempts, next, setNext, latest }: { attempts: Attempt[]; n
                   {on && (
                     <select className="field" style={{ width: 'auto', minHeight: 34, fontFamily: 'var(--mono)' }} aria-label={t('cgpa.gradeFor', { code: c.attempt.code })}
                       value={picked[c.attempt.id]} onChange={(e) => setPicked((p) => ({ ...p, [c.attempt.id]: e.target.value as LetterGrade }))}>
-                      {HOPES.filter((g) => GRADE_POINTS[g] > gp(c.attempt.grade)).map((g) => <option key={g}>{g}</option>)}
+                      {HOPES.map((g) => <option key={g}>{g}</option>)}
                     </select>
                   )}
                   <span style={{ fontFamily: 'var(--mono)', fontSize: '0.9rem' }} title={t('cgpa.aloneTitle')}>{num(alone, 2)}</span>

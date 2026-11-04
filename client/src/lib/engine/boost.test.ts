@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { bestPlan, candidates, scenarios } from './boost';
+import { bestPlan, candidates, cgpaWithGains, gainFor, scenarios } from './boost';
 import { Attempt, Grade, LETTER_GRADES, gpaOf, totals } from './grades';
 
 let n = 0;
@@ -89,5 +89,13 @@ describe('the best plan', () => {
       expect(greedy).toBeCloseTo(best, 12);
       expect(gpaOf({ points: sums.points + pool.slice(0, k).reduce((p, c) => p + c.gain, 0), credits: sums.credits })).toBe(bestPlan(sums, pool, k).cgpa);
     }
+  });
+
+  it('lowers the CGPA when a repeat comes back worse', () => {
+    const list = [a('CSE220', 'B', 'Fall 2025'), a('MAT120', 'A', 'Fall 2025')];
+    const sums = totals(list).sums;
+    expect(cgpaWithGains(sums, [gainFor(list[0], 'C')]).cgpa).toBe(3);
+    expect(cgpaWithGains(sums, [gainFor(list[0], 'A')]).cgpa).toBe(4);
+    expect(cgpaWithGains(sums, [gainFor(list[0], 'B')]).cgpa).toBe(3.5);
   });
 });

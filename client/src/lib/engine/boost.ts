@@ -81,8 +81,9 @@ export function scenarios(sums: Sums, all: Candidate[], count: number) {
   };
 }
 
+// a repeat counts the latest grade even when it is lower, so the gain can be negative
 export const gainFor = (attempt: Attempt, grade: LetterGrade) =>
-  Math.max(0, tenths(grade) - tenths(attempt.grade as LetterGrade)) * hundredths(attempt.credits);
+  (tenths(grade) - tenths(attempt.grade as LetterGrade)) * hundredths(attempt.credits);
 
 export const cgpaWithGains = (sums: Sums, gains: number[]) => {
   const after = { points: sums.points + gains.reduce((n, g) => n + g, 0), credits: sums.credits };
